@@ -23,7 +23,7 @@ public class SetkaInstrumentedTest {
   private void until(ActivityScenario<MainActivity> scenario,String expression) throws Exception {
     long end=System.currentTimeMillis()+45000;
     while(System.currentTimeMillis()<end){if("true".equals(js(scenario,"Boolean("+expression+")")))return;Thread.sleep(250);}
-    fail("Timed out: "+expression+"; page="+js(scenario,"document.body.innerText"));
+    fail("Timed out: "+expression+"; error="+js(scenario,"window.testError")+"; page="+js(scenario,"document.body.innerText"));
   }
   private void shell(String command) throws Exception {
     InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(command).close();
@@ -59,8 +59,23 @@ public class SetkaInstrumentedTest {
       js(scenario,"location.reload()");until(scenario,"document.querySelector('.now-panel')");
       assertEquals("true",js(scenario,"JSON.parse(localStorage.getItem('setka.v1')).tasks.some(t=>t.title==='Android verification task')"));
       shell("svc wifi enable");
-      js(scenario,"document.querySelector('[data-nav=more]').click();document.querySelector('[data-action=notification-permission]').click()");
+      js(scenario,"document.querySelector('[data-nav=more]').click();document.querySelector('[data-action=catalog]').click()");
+      until(scenario,"document.querySelector('[data-source]')");
+      js(scenario,"Array.from(document.querySelectorAll('[data-source]')).find(b=>b.innerText.includes('1 курс БВО')).click()");
+      until(scenario,"document.querySelector('#import-form')");
+      js(scenario,"document.querySelector('#import-form').requestSubmit()");until(scenario,"document.querySelector('#apply-import')");
+      js(scenario,"document.querySelector('#apply-import').click()");
+      until(scenario,"JSON.parse(localStorage.getItem('setka.v1')).schedule.importMeta.source");
+      assertEquals("true",js(scenario,"JSON.parse(localStorage.getItem('setka.v1')).sessions.length===1"));
+      js(scenario,"document.querySelector('[data-nav=more]').click();document.querySelector('[data-action=check-source]').click()");
+      until(scenario,"document.querySelector('.source-status').innerText.includes('Актуально')");
+      js(scenario,"document.querySelector('[data-action=notification-permission]').click()");
       until(scenario,"JSON.parse(localStorage.getItem('setka.v1')).notifications.enabled");
+      js(scenario,"window.testPoll=setInterval(async()=>{window.testPending=(await Capacitor.Plugins.LocalNotifications.getPending()).notifications},200)");
+      until(scenario,"window.testPending?.some(n=>n.extra?.signature?.includes('session:'))");
+      js(scenario,"window.oldReminder=window.testPending.find(n=>n.extra?.signature?.includes('session:')).extra.signature;const f=document.querySelector('#notification-form');f.elements.sessionLead.value='9';f.requestSubmit()");
+      until(scenario,"window.testPending?.some(n=>n.extra?.signature?.includes('session:')&&n.extra.signature!==window.oldReminder)");
+      js(scenario,"clearInterval(window.testPoll)");
       js(scenario,"(async()=>{try{const n=Capacitor.Plugins.LocalNotifications;await n.createChannel({id:'setka-test',name:'Verification',importance:4});await n.schedule({notifications:[{id:999999,title:'Setka background verification',body:'Native AlarmManager delivery',channelId:'setka-test',schedule:{at:new Date(Date.now()+5000),allowWhileIdle:true,isExactNotification:true}}]});window.testScheduled=true;}catch(e){window.testError=String(e)}})()");
       until(scenario,"window.testScheduled");
       shell("input keyevent KEYCODE_HOME");
