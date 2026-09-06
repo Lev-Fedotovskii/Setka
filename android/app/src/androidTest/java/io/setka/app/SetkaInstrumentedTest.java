@@ -26,7 +26,7 @@ public class SetkaInstrumentedTest {
     fail("Timed out: "+expression+"; error="+js(scenario,"window.testError")+"; page="+js(scenario,"document.body.innerText"));
   }
   private void shell(String command) throws Exception {
-    InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(command).close();
+    try(java.io.InputStream stream=new android.os.ParcelFileDescriptor.AutoCloseInputStream(InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(command))){stream.readAllBytes();}
   }
   @Test public void localImportPlanningPersistenceAndBackgroundNotification() throws Exception {
     Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
@@ -58,7 +58,9 @@ public class SetkaInstrumentedTest {
       shell("svc wifi disable");shell("svc data disable");
       js(scenario,"location.reload()");until(scenario,"document.querySelector('.now-panel')");
       assertEquals("true",js(scenario,"JSON.parse(localStorage.getItem('setka.v1')).tasks.some(t=>t.title==='Android verification task')"));
-      shell("svc wifi enable");
+      shell("svc wifi enable");shell("svc data enable");
+      js(scenario,"window.testNetworkPoll=setInterval(async()=>{try{const r=await fetch('https://lev-fedotovskiy.github.io/Setka/data/catalog.json');window.testOnline=r.ok;if(r.ok)clearInterval(window.testNetworkPoll)}catch(e){window.testError=String(e)}},500)");
+      until(scenario,"window.testOnline");
       js(scenario,"document.querySelector('[data-nav=more]').click();document.querySelector('[data-action=catalog]').click()");
       until(scenario,"document.querySelector('[data-source]')");
       js(scenario,"Array.from(document.querySelectorAll('[data-source]')).find(b=>b.innerText.includes('1 курс БВО')).click()");
