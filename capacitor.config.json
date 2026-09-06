@@ -1,0 +1,10 @@
+{
+  "appId": "io.setka.app",
+  "appName": "Сетка",
+  "webDir": "dist",
+  "server": {"androidScheme": "https"},
+  "plugins": {
+    "CapacitorHttp": {"enabled": true},
+    "LocalNotifications": {"smallIcon": "ic_stat_setka", "iconColor": "#213f35"}
+  }
+}

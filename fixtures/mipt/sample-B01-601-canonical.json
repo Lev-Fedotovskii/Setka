@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "1.0-draft",
+  "source": {
+    "institution": "mipt",
+    "workbook": "БВО 1 КУРС ОСЕНЬ 2026-2027 г.xlsx",
+    "sheet": "Лист1"
+  },
+  "group": {
+    "id": "Б01-601",
+    "program": "ФРКТ"
+  },
+  "records": [
+    {
+      "weekday": 1,
+      "start": "09:00",
+      "end": "10:25",
+      "kind": "lesson",
+      "title": "Иностранный язык",
+      "sourceRange": "C4:C5"
+    },
+    {
+      "weekday": 1,
+      "start": "10:35",
+      "end": "12:00",
+      "kind": "sport",
+      "title": "Физическая культура",
+      "sourceRange": "C6:C7"
+    },
+    {
+      "weekday": 1,
+      "start": "13:55",
+      "end": "15:20",
+      "kind": "lesson",
+      "title": "Общая физика: механика",
+      "instructors": [
+        "Овчинкин В.А."
+      ],
+      "location": "Гл.Физ.",
+      "rawText": "Общая физика:механика, доцент Овчинкин В.А.-Гл.Физ.",
+      "sourceRange": "C10:K11",
+      "sharedAcrossGroups": true
+    },
+    {
+      "weekday": 1,
+      "start": "15:30",
+      "end": "16:55",
+      "kind": "lesson",
+      "title": "Аналитическая геометрия",
+      "instructors": [
+        "Подлипская О.Г."
+      ],
+      "location": "230 ГК",
+      "rawText": "Аналитическая геометрия, доц. Подлипская О.Г. - 230 ГК",
+      "sourceRange": "C12:C13"
+    },
+    {
+      "weekday": 1,
+      "start": "17:05",
+      "end": "18:30",
+      "kind": "lesson",
+      "title": "Аналитическая геометрия",
+      "instructors": [
+        "Подлипская О.Г."
+      ],
+      "location": "239 Квант",
+      "rawText": "Аналитическая геометрия, доцент Подлипская О.Г.-239 Квант",
+      "sourceRange": "C14:K15",
+      "sharedAcrossGroups": true
+    },
+    {
+      "weekday": 4,
+      "start": "09:00",
+      "end": "12:00",
+      "kind": "lab",
+      "title": "Общая физика: лабораторный практикум",
+      "sourceRange": "C47:C49",
+      "spansSlots": [
+        1,
+        2
+      ]
+    },
+    {
+      "weekday": 5,
+      "start": "12:10",
+      "end": "15:20",
+      "kind": "lesson",
+      "title": "Информатика",
+      "instructors": [
+        "Винокуров Н.А."
+      ],
+      "location": "702 КПМ",
+      "rawText": "Информатика, ст.пр. Винокуров Н.А.-702 КПМ",
+      "sourceRange": "C64:C66",
+      "spansSlots": [
+        3,
+        4
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+import {build} from 'esbuild';
+import {mkdir,cp,readFile,writeFile,readdir,rm} from 'node:fs/promises';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+const root=process.cwd(),out=path.join(root,'dist');
+if(path.resolve(out)!==path.resolve(root,'dist'))throw Error('Unexpected output directory');
+await rm(out,{recursive:true,force:true});await mkdir(out,{recursive:true});
+for(const dir of ['assets','vendor','data'])await cp(dir,path.join(out,dir),{recursive:true});
+await cp('src',path.join(out,'src'),{recursive:true});
+await mkdir(path.join(out,'fixtures/mipt'),{recursive:true});
+await cp('fixtures/mipt/File.xlsx',path.join(out,'fixtures/mipt/File.xlsx'));
+await build({entryPoints:['src/app.js'],outfile:path.join(out,'app.js'),bundle:true,format:'esm',target:['es2022'],minify:false,legalComments:'eof'});
+let html=await readFile('index.html','utf8');
+html=html.replaceAll('="/','="./').replace('./src/app.js','./app.js');
+await writeFile(path.join(out,'index.html'),html);
+const manifest=JSON.parse(await readFile('manifest.webmanifest','utf8'));
+Object.assign(manifest,{id:'./',start_url:'./',scope:'./'});manifest.icons.forEach(i=>i.src='.'+i.src);
+await writeFile(path.join(out,'manifest.webmanifest'),JSON.stringify(manifest,null,2));
+let preview=await readFile('preview.html','utf8');preview=preview.replaceAll('href="/"','href="./"').replace('src="/"','src="./"');await writeFile(path.join(out,'preview.html'),preview);
+async function files(dir,prefix=''){const entries=await readdir(dir,{withFileTypes:true});return (await Promise.all(entries.map(e=>e.isDirectory()?files(path.join(dir,e.name),prefix+e.name+'/'):prefix+e.name))).flat();}
+const shell=(await files(out)).filter(f=>!f.startsWith('src/')||f==='src/styles.css').filter(f=>f!=='preview.html');
+const fingerprint=createHash('sha256');for(const f of shell)fingerprint.update(await readFile(path.join(out,f)));
+const version=fingerprint.digest('hex').slice(0,16);
+let worker=await readFile('sw.js','utf8');worker=worker.replace('__BUILD_VERSION__',version).replace('__BUILD_FILES__',JSON.stringify(['./',...shell.map(f=>'./'+f)]));
+await writeFile(path.join(out,'sw.js'),worker);await writeFile(path.join(out,'.nojekyll'),'');
+console.log(`Built dist: ${shell.length} cached assets, version ${version}`);
