@@ -4,7 +4,9 @@ const base=process.env.TEST_URL||'http://localhost:4175/Setka/';
 const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||'msedge'});
 try {
   const context=await browser.newContext();const page=await context.newPage();
+  page.on('pageerror',e=>console.error('Page error:',e.message));
   await page.clock.install({time:new Date('2026-09-06T08:04:59Z')});
+  await page.clock.pauseAt(new Date('2026-09-06T08:04:59Z'));
   await page.goto(base);await page.waitForSelector('.now-panel');
   assert.equal(await page.evaluate(()=>Notification.permission),'default');
   const cdp=await context.newCDPSession(page);
@@ -17,7 +19,7 @@ try {
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).notifications.enabled),true);
   await page.evaluate(async()=>{
     const {newState}=await import('./src/storage.js');const s=newState('2026-09-06');s.notifications.enabled=true;
-    s.tasks=[{id:'notification-test',title:'Notification verification',remainingMinutes:30,status:'todo',priority:3}];
+    s.tasks=[{id:'notification-test',title:'Notification verification',estimatedMinutes:30,remainingMinutes:30,splittable:true,status:'todo',priority:3}];
     s.sessions=[{id:'test-session',taskId:'notification-test',date:'2026-09-06',start:670,end:700,status:'planned'}];
     localStorage.setItem('setka.v1',JSON.stringify(s));await navigator.serviceWorker.ready;
   });
