@@ -2,7 +2,7 @@
 
 A personal university planner for MIPT. **Today comes first:** what is happening now, what comes next, and what fits into your free time.
 
-[Open the PWA](https://lev-fedotovskiy.github.io/Setka/) · [Android builds](https://github.com/Lev-Fedotovskiy/Setka/actions/workflows/android.yml)
+[Open the PWA](https://lev-fedotovskiy.github.io/Setka/) · [Download Android APK](https://github.com/Lev-Fedotovskiy/Setka/releases/latest) · [Android builds](https://github.com/Lev-Fedotovskiy/Setka/actions/workflows/android.yml)
 
 ## What it does
 
@@ -45,6 +45,8 @@ npx playwright install chromium
 # BROWSER_CHANNEL=chromium, TEST_URL=http://localhost:4175/Setka/
 node tests/browser.mjs
 node tests/update-browser.mjs
+node tests/notifications-browser.mjs
+node tests/installability-browser.mjs
 ```
 
 On Windows, browser tests default to installed Edge. `TEST_URL` can point to the deployed Pages app. Tests use an isolated browser profile and never modify your normal application data.

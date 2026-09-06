@@ -90,6 +90,21 @@ try{
   await preview.frameLocator('iframe').locator('.now-panel').waitFor();
   assert.equal(await preview.locator('iframe').evaluate(e=>e.clientWidth),390);
   await preview.close();
+  // Reopening after actual fixture lessons ended must catch up, once, without future tasks.
+  await page.clock.setFixedTime(new Date('2026-09-08T18:00:00Z'));
+  await page.reload();await page.waitForSelector('.now-panel');
+  const generated=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).tasks.filter(t=>t.origin));
+  for(const kind of ['lecture','seminar','practice'])assert.ok(generated.some(t=>t.origin.kind===kind),kind+' follow-up');
+  assert.ok(generated.every(t=>t.origin.date<='2026-09-08'&&t.occurrenceId&&t.status==='todo'));
+  await page.reload();await page.waitForSelector('.now-panel');
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).tasks.filter(t=>t.origin).length),generated.length);
+  await page.locator('.mobile-nav [data-nav=tasks]').click();
+  await page.locator(`[data-action=manual-plan][data-id="${generated[0].id}"]`).click();
+  await page.locator('#plan-form [name=date]').fill('2026-09-13');
+  await page.locator('#plan-form [name=start]').fill('12:00');
+  await page.locator('#plan-form [name=duration]').fill('30');
+  await page.getByRole('button',{name:'Подтвердить время'}).click();
+  assert.ok(await page.evaluate(id=>JSON.parse(localStorage.getItem('setka.v1')).sessions.some(s=>s.taskId===id&&s.status==='planned'),generated[0].id));
   assert.deepEqual(errors,[]);
   console.log('PASS: real XLSX, import review, plan/complete/persist, zero-diff re-import, desktop/mobile, offline reload and editing, no page errors.');
 }finally{await browser.close();}

@@ -2,7 +2,7 @@ name: Android APK
 on:
   push:
     branches: [main]
-    paths-ignore: ['docs/**', 'README.md']
+    paths-ignore: ['docs/**', 'README.md', 'tests/*browser.mjs', '.github/workflows/pages.yml']
   workflow_dispatch:
 permissions:
   contents: read
