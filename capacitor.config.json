@@ -5,6 +5,6 @@
   "server": {"androidScheme": "https"},
   "plugins": {
     "CapacitorHttp": {"enabled": true},
-    "LocalNotifications": {"smallIcon": "ic_stat_setka", "iconColor": "#213f35"}
+    "LocalNotifications": {"smallIcon": "ic_stat_setka", "iconColor": "#24466f"}
   }
 }
