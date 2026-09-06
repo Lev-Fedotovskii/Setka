@@ -17,12 +17,14 @@ try {
   await page.click('[data-action=notification-permission]');
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('setka.v1')).notifications.enabled);
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).notifications.enabled),true);
-  await page.evaluate(async()=>{
+  const fixture=await page.evaluate(async()=>{
     const {newState}=await import('./src/storage.js');const s=newState('2026-09-06');s.notifications.enabled=true;
     s.tasks=[{id:'notification-test',title:'Notification verification',estimatedMinutes:30,remainingMinutes:30,splittable:true,status:'todo',priority:3}];
     s.sessions=[{id:'test-session',taskId:'notification-test',date:'2026-09-06',start:670,end:700,status:'planned'}];
-    localStorage.setItem('setka.v1',JSON.stringify(s));await navigator.serviceWorker.ready;
+    await navigator.serviceWorker.ready;return s;
   });
+  // Seed before the application loads, so its live state cannot overwrite the fixture.
+  await page.addInitScript(s=>{if(!sessionStorage.getItem('notification-fixture')){localStorage.setItem('setka.v1',JSON.stringify(s));sessionStorage.setItem('notification-fixture','1');}},fixture);
   await page.reload();await page.waitForSelector('.now-panel');
   await page.waitForTimeout(300);await page.clock.runFor(2500);
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('setka.notifications.delivered')||'[]').includes('session:test-session'));
