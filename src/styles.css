@@ -6,3 +6,14 @@
 
 .origin-link{border:0;background:none;color:#395c8d;font-size:11px;padding:6px 0;text-align:left}.catalog-list{display:grid;gap:10px}.catalog-item{display:grid;gap:7px;text-align:left;padding:16px;background:#e0e8f4;border:1px solid #b3c6e0;border-radius:4px}.catalog-item small{color:#476793}.source-status{border-bottom:1px solid #c1d0e6;padding-bottom:16px;margin-bottom:18px}.source-status p,.source-status small{font-size:12px;color:#436391}.source-status .secondary{margin-top:12px}.settings-panel .rule-row{font-size:12px}
 
+
+/* Kind colors stay consistent in Today and the academic Week grid. */
+.event-card.lecture,.grid-lesson.lecture{background:#f8e7ef;border-color:#e6cbd8;border-left-color:#b7809c}
+.event-card.seminar,.grid-lesson.seminar{background:#e5efff;border-color:#c6d8f3;border-left-color:#7d9fce}
+.event-card.practice,.event-card.lab,.grid-lesson.practice,.grid-lesson.lab{background:#fff1d8;border-color:#ecd9b2;border-left-color:#c2a160}
+.event-card.sport,.grid-lesson.sport{background:#e3f2f5;border-color:#bedde3;border-left-color:#7faab7}
+.event-card.work{background:#eee8fa;border-color:#d8ccee;border-left-color:#9e87c1}
+.event-card.personal{background:#f9e9df;border-color:#e8cfc0;border-left-color:#c09276}
+.event-card.other,.grid-lesson.other{background:#f0f0f4;border-color:#dcdce4;border-left-color:#9b9cae}
+.past .event-card{opacity:.72}.event-card.current{box-shadow:0 0 0 2px #b9d5fd;border-left-width:5px}
+.topbar>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.topbar>button{flex-shrink:0}

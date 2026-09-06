@@ -11,9 +11,10 @@ export function classifyKind(raw, style={}, profile=false) {
   const inferred=profile && style.fill?.pattern==='solid' ? Object.entries(MIPT_PALETTE).find(([,v])=>v===color)?.[0] : null;
   // Explicit text wins, including yellow chemistry with an explicit (с) suffix.
   const kind=explicit||inferred||'other';
-  return {kind,evidence:{method:explicit?'text':inferred?'mipt-palette':'unresolved',profile:profile?'mipt-bvo-2026-v1':null,color:color||null},warnings:explicit&&inferred&&explicit!==inferred&&!(explicit==='lab'&&inferred==='practice')&&explicit!=='sport'?['Текст уточняет тип вопреки цвету ячейки.']:[]};
+  return {kind,evidence:{method:explicit?'text':inferred?'mipt-palette':'unresolved',profile:profile?'mipt-timetable-2026-v2':null,color:color||null},warnings:explicit&&inferred&&explicit!==inferred&&!(explicit==='lab'&&inferred==='practice')&&explicit!=='sport'?['Текст уточняет тип вопреки цвету ячейки.']:[]};
 }
 export function recognizePalette(sheet) {
   const colors=new Set(sheet.cells.filter(c=>c.style?.fill?.pattern==='solid').map(c=>c.style.fill.rgb?.slice(-6).toUpperCase()));
-  return Object.values(MIPT_PALETTE).every(c=>colors.has(c));
+  // The smaller ФАКТ workbook has lectures/seminars but no yellow practical cells.
+  return colors.has(MIPT_PALETTE.lecture)&&colors.has(MIPT_PALETTE.seminar);
 }

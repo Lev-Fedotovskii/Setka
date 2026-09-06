@@ -1,4 +1,4 @@
-import {readXlsx} from './import/xlsx.js';
+import {readWorkbook} from './import/workbook.js';
 import {inferMipt,applyOverrides,importDiff} from './import/mipt.js';
 export const PUBLIC_URL='https://lev-fedotovskii.github.io/Setka/';
 export function sourceState(schedule,source){
@@ -11,10 +11,9 @@ export async function loadCatalog(base){
   return catalog;
 }
 export async function sourceCandidate(source,base,state){
-  if(!source.supported)throw Error('Эта книга в старом формате .xls. Автоимпорт пока поддерживает .xlsx.');
-  if(!/^data\/workbooks\/[\w.-]+\.xlsx$/.test(source.path))throw Error('Некорректный адрес книги');
+  if(!/^data\/workbooks\/[\w.-]+\.xlsx?$/.test(source.path))throw Error('Некорректный адрес книги');
   const response=await fetch(new URL(source.path,base),{cache:'no-store'});if(!response.ok)throw Error('Книга недоступна');
-  const ir=await readXlsx(await response.arrayBuffer(),source.filename);if(ir.hash!==source.sha256)throw Error('Версия книги не совпадает с каталогом. Повторите проверку позже.');
+  const ir=await readWorkbook(await response.arrayBuffer(),source.filename);if(ir.hash!==source.sha256)throw Error('Версия книги не совпадает с каталогом. Повторите проверку позже.');
   const existing=state.schedule?.importMeta.source?.id===source.id;
   const schedule=applyOverrides(inferMipt(ir,existing?state.schedule.term:undefined),state.overrides);
   schedule.importMeta.source={id:source.id,label:source.label,program:source.program,course:source.course,academicYear:source.academicYear,term:source.term,url:source.url,checkedAt:source.checkedAt};

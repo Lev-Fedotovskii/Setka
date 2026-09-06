@@ -1,0 +1,62 @@
+[
+  {
+    "id": "mipt-32b7b890afb5eee4",
+    "path": "fixtures/mipt/xls/mipt-32b7b890afb5eee4.xls",
+    "filename": "магистратура 2 КУРС ОСЕНЬ ФБВТ 2026-2027 г..xls",
+    "label": "2 курса магистратуры 2026-2027 уч. г.",
+    "sourceUrl": "https://mipt.ru/upload/%D0%BC%D0%B0%D0%B3%D0%B8%D1%81%D1%82%D1%80%D0%B0%D1%82%D1%83%D1%80%D0%B0%202%20%D0%9A%D0%A3%D0%A0%D0%A1%20%D0%9E%D0%A1%D0%95%D0%9D%D0%AC%20%D0%A4%D0%91%D0%92%D0%A2%202026-2027%20%D0%B3..xls",
+    "sha256": "d55f93488d1e45e2a5ba0c72a5e852f50970cd6b5f7863cd3d051366c0f18bab",
+    "groups": 1,
+    "series": 66
+  },
+  {
+    "id": "mipt-417c483909021295",
+    "path": "fixtures/mipt/xls/mipt-417c483909021295.xls",
+    "filename": "бакалавриат 4 КУРС ОСЕНЬ 2026-2027 г..xls",
+    "label": "4 курс бакалавриата/ 4 специалитета",
+    "sourceUrl": "https://mipt.ru/upload/%D0%B1%D0%B0%D0%BA%D0%B0%D0%BB%D0%B0%D0%B2%D1%80%D0%B8%D0%B0%D1%82%204%20%D0%9A%D0%A3%D0%A0%D0%A1%20%D0%9E%D0%A1%D0%95%D0%9D%D0%AC%202026-2027%20%D0%B3..xls",
+    "sha256": "14e075293c19602d2c6a79069727968fb8f83fb0afc33efec2a0ec480ea520a1",
+    "groups": 65,
+    "series": 414
+  },
+  {
+    "id": "mipt-70716429b751b00e",
+    "path": "fixtures/mipt/xls/mipt-70716429b751b00e.xls",
+    "filename": "бакалавриат 2 КУРС ОСЕНЬ 2026-2027 г..xls",
+    "label": "2 курс бакалавриата",
+    "sourceUrl": "https://mipt.ru/upload/%D0%B1%D0%B0%D0%BA%D0%B0%D0%BB%D0%B0%D0%B2%D1%80%D0%B8%D0%B0%D1%82%202%20%D0%9A%D0%A3%D0%A0%D0%A1%20%D0%9E%D0%A1%D0%95%D0%9D%D0%AC%202026-2027%20%D0%B3..xls",
+    "sha256": "2fee9c5c3f59f29323c6baf1f0e06a317fef0553d41b6eba203dafb73e8f437c",
+    "groups": 79,
+    "series": 1139
+  },
+  {
+    "id": "mipt-d22c69cdb4e92dad",
+    "path": "fixtures/mipt/xls/mipt-d22c69cdb4e92dad.xls",
+    "filename": "магистратура 2 КУРС ОСЕНЬ ФАКТ 2026-2027 г..xls",
+    "label": "2 курс магистратуры ФАКТ",
+    "sourceUrl": "https://mipt.ru/upload/%D0%BC%D0%B0%D0%B3%D0%B8%D1%81%D1%82%D1%80%D0%B0%D1%82%D1%83%D1%80%D0%B0%202%20%D0%9A%D0%A3%D0%A0%D0%A1%20%D0%9E%D0%A1%D0%95%D0%9D%D0%AC%20%D0%A4%D0%90%D0%9A%D0%A2%202026-2027%20%D0%B3..xls",
+    "sha256": "03168d535d282e1ded5c5615c966123f4a3c1ecc92e47d77a5d42bb59f570f1c",
+    "groups": 1,
+    "series": 11
+  },
+  {
+    "id": "mipt-d2d1adf1e5b93076",
+    "path": "fixtures/mipt/xls/mipt-d2d1adf1e5b93076.xls",
+    "filename": "СпВО 1 КУРС ОСЕНЬ 2026-2027 г..xls",
+    "label": "1 курс СпВО/ 5 курс специалитета",
+    "sourceUrl": "https://mipt.ru/upload/%D0%A1%D0%BF%D0%92%D0%9E%201%20%D0%9A%D0%A3%D0%A0%D0%A1%20%D0%9E%D0%A1%D0%95%D0%9D%D0%AC%202026-2027%20%D0%B3..xls",
+    "sha256": "3f06234d62354c64f48c58933d5d438c9fd1af5a2ff80afc4482ee7cf74e0d67",
+    "groups": 57,
+    "series": 282
+  },
+  {
+    "id": "mipt-d70960a4648db112",
+    "path": "fixtures/mipt/xls/mipt-d70960a4648db112.xls",
+    "filename": "магистратура 2 КУРС ОСЕНЬ ФПМИ 2026-2027.xls",
+    "label": "2 курс магистратуры ФПМИ",
+    "sourceUrl": "https://mipt.ru/upload/%D0%BC%D0%B0%D0%B3%D0%B8%D1%81%D1%82%D1%80%D0%B0%D1%82%D1%83%D1%80%D0%B0%202%20%D0%9A%D0%A3%D0%A0%D0%A1%20%D0%9E%D0%A1%D0%95%D0%9D%D0%AC%20%D0%A4%D0%9F%D0%9C%D0%98%202026-2027.xls",
+    "sha256": "98dd4de87b0f6fedeaf2d7d8d39deb5b0529a69f9ba18df72da7a9ae6ba59f55",
+    "groups": 12,
+    "series": 6
+  }
+]

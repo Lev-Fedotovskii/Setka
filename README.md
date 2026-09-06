@@ -28,7 +28,7 @@ npm start
 
 Open http://localhost:4173. The phone-sized preview is http://localhost:4173/preview.html. `START.cmd` also builds and starts an already-installed Windows checkout.
 
-Choose **Выбрать расписание МФТИ**, select a program/course, then review your group and term before applying. If offline or a source is unavailable, use local XLSX import under **Ещё**. The catalog currently includes legacy XLS sources, but importing that format is not yet supported.
+Choose **Выбрать расписание МФТИ**, select a program/course, then review your group and term before applying. If offline or a source is unavailable, import a local **XLS or XLSX** under **Ещё**. All eight current catalog workbooks are covered, including the dated-week ФБВТ layout. Uncertain source entries remain visible for review.
 
 ```sh
 npm test
@@ -47,6 +47,7 @@ node tests/browser.mjs
 node tests/update-browser.mjs
 node tests/notifications-browser.mjs
 node tests/installability-browser.mjs
+node tests/catalog-browser.mjs
 ```
 
 On Windows, browser tests default to installed Edge. `TEST_URL` can point to the deployed Pages app. Tests use an isolated browser profile and never modify your normal application data.
@@ -101,4 +102,4 @@ Output: `android/app/build/outputs/apk/debug/app-debug.apk`. These are installab
 
 Read `docs/design/` before changing import semantics. The original fixture is unchanged. The sample JSON is partial and contains a stale room: the workbook says 515 ГК at C12:C13, whereas the sample says 230 ГК. DD-003 was not present in the supplied materials; DD-004/DD-005 describe the implemented decisions and limits.
 
-Known limits: legacy XLS import, complex mixed-parity cell splitting, transposed workbooks, source exception editing, multi-device sync, ICS and dependable closed-PWA push. Semester end remains a reviewable default rather than a fact extracted from Excel. LocalStorage has browser/device storage limits; export backups before clearing application data.
+Known limits: complex mixed-parity cell splitting, arbitrary workbook layouts beyond those documented, source exception editing, multi-device sync, ICS and dependable closed-PWA push. Semester dates remain reviewable. The ФБВТ workbook contains a conflicting date and an intensive with no stated time; these entries are withheld and shown in review. LocalStorage has browser/device storage limits; export backups before clearing application data.

@@ -63,11 +63,12 @@ public class SetkaInstrumentedTest {
       until(scenario,"window.testOnline");
       js(scenario,"document.querySelector('[data-nav=more]').click();document.querySelector('[data-action=catalog]').click()");
       until(scenario,"document.querySelector('[data-source]')");
-      js(scenario,"Array.from(document.querySelectorAll('[data-source]')).find(b=>b.innerText.includes('1 курс БВО')).click()");
+      js(scenario,"Array.from(document.querySelectorAll('[data-source]')).find(b=>b.innerText.includes('2 курс бакалавриата')).click()");
       until(scenario,"document.querySelector('#import-form')");
       js(scenario,"document.querySelector('#import-form').requestSubmit()");until(scenario,"document.querySelector('#apply-import')");
       js(scenario,"document.querySelector('#apply-import').click()");
       until(scenario,"JSON.parse(localStorage.getItem('setka.v1')).schedule.importMeta.source");
+      assertEquals("true",js(scenario,"JSON.parse(localStorage.getItem('setka.v1')).schedule.importMeta.workbook.endsWith('.xls')"));
       assertEquals("true",js(scenario,"JSON.parse(localStorage.getItem('setka.v1')).sessions.length===1"));
       js(scenario,"document.querySelector('[data-nav=more]').click();document.querySelector('[data-action=check-source]').click()");
       until(scenario,"document.querySelector('.source-status').innerText.includes('Актуально')");

@@ -61,7 +61,7 @@ export async function refreshCatalog(directory='data'){
       const format=bytes[0]===0x50&&bytes[1]===0x4b?'xlsx':bytes[0]===0xd0&&bytes[1]===0xcf?'xls':null;
       if(!format)throw Error('Response is not an Excel workbook');
       const path=`workbooks/${source.id}-${sha256.slice(0,16)}.${format}`;await writeFile(`${directory}/${path}`,bytes);
-      Object.assign(source,{sha256,path:'data/'+path,format,supported:format==='xlsx',size:bytes.length,checkedAt,changedAt:old?.sha256===sha256?old.changedAt:checkedAt,etag:headers.get('etag'),lastModified:headers.get('last-modified'),status:'ok'});
+      Object.assign(source,{sha256,path:'data/'+path,format,supported:true,size:bytes.length,checkedAt,changedAt:old?.sha256===sha256?old.changedAt:checkedAt,etag:headers.get('etag'),lastModified:headers.get('last-modified'),status:'ok'});
     }catch(e){
       if(!old)throw Error(`${source.label}: ${e.message}`);
       Object.assign(source,{...old,url:source.url,status:'error',error:e.message,attemptedAt:checkedAt});

@@ -35,6 +35,7 @@ export function validateBackup(s){
   if(s.generatedThrough&&(!Number.isInteger(s.generatedThrough.minute)||s.generatedThrough.minute<0||s.generatedThrough.minute>=1440))throw Error('Некорректное время генерации.');
   if(s.schedule){
     const sc=s.schedule;
+    if(sc.series.some(e=>e.recurrence.datesOnly&&(!Array.isArray(e.recurrence.includeDates)||!e.recurrence.includeDates.length||e.recurrence.includeDates.some(d=>!validDate(d)))))throw Error('Некорректные даты занятия.');
     if(sc.term.startsOn>sc.term.endsOn||!['odd','even'].includes(sc.term.parityAnchor.parity)||!Array.isArray(sc.groups)||!sc.importMeta||typeof sc.importMeta.workbook!=='string')throw Error('Некорректный семестр или источник.');
     try{new Intl.DateTimeFormat('en',{timeZone:sc.institution.timezone});}catch{throw Error('Некорректный часовой пояс.');}
     const validClock=t=>typeof t==='string'&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(t);

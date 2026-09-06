@@ -1,5 +1,5 @@
 import { BELLS, DEFAULT_TERM } from '../domain/schedule.js';
-import { minute } from '../domain/dates.js';
+import { minute,addDays,monday,weekday,validDate } from '../domain/dates.js';
 import { address } from './xlsx.js';
 import {classifyKind,recognizePalette} from './kinds.js';
 const DAYS=['понедельник','вторник','среда','четверг','пятница','суббота','воскресенье'];
@@ -30,7 +30,7 @@ export function semantics(raw) {
   return {title,kind,location,instructors:instructor,parity:odd?'odd':even?'even':'all',warnings,blocked:odd&&even};
 }
 export function inferMipt(ir,term=DEFAULT_TERM) {
-  const series=[],groups=new Map(),blocks=[],unresolved=[];
+  const series=[],groups=new Map(),blocks=[],unresolved=[],bellTemplates=new Map();
   for(const sheet of ir.sheets) {
     const palette=recognizePalette(sheet);
     const mergeAt=(r,c)=>sheet.merges.find(m=>r>=m.from.row && r<=m.to.row && c>=m.from.col && c<=m.to.col);
@@ -55,6 +55,8 @@ export function inferMipt(ir,term=DEFAULT_TERM) {
         const day=dayCells[di],dayEnd=dayCells[di+1]?.row || 100000;
         const times=sheet.cells.filter(c=>c.col===timeHeader.col && c.row>=day.row && c.row<dayEnd).flatMap(c=>{const t=parseTime(c.normalizedText);return t?[{row:c.row,...t,merge:mergeAt(c.row,c.col)}]:[];}).sort((a,b)=>a.row-b.row);
         if(!times.length)continue;
+        const template=JSON.stringify(times.map(({startsAt,endsAt})=>({startsAt,endsAt})));
+        bellTemplates.set(template,(bellTemplates.get(template)||0)+1);
         const last=times.at(-1),lastRow=last.merge?.to.row||last.row;
         for(const cell of sheet.cells.filter(c=>c.col>timeHeader.col && c.col<=endCol && c.row>=day.row && c.row<=lastRow)) {
           const geometry=mergeAt(cell.row,cell.col)||{from:{row:cell.row,col:cell.col},to:{row:cell.row,col:cell.col},ref:cell.ref};
@@ -81,8 +83,62 @@ export function inferMipt(ir,term=DEFAULT_TERM) {
       }
     }
   }
-  if(!groups.size || !series.length)throw Error('Не найдены блоки «Дни / Часы / группы». Эта структура пока не поддерживается.');
-  return {schemaVersion:'0.1',institution:{id:'mipt',name:'МФТИ',timezone:'Europe/Moscow'},term:structuredClone(term),bellSchedule:structuredClone(BELLS),groups:[...groups.values()],series,importMeta:{workbook:ir.name,hash:ir.hash,blocks,unresolved}};
+  if(!groups.size || !series.length)return inferDatedMipt(ir,term);
+  const primary=[...bellTemplates].sort((a,b)=>b[1]-a[1]||b[0].length-a[0].length)[0];
+  const bellSchedule=primary?{id:'mipt-source-bells',validFrom:term.startsOn,slots:JSON.parse(primary[0]).map((t,i)=>({number:i+1,...t}))}:structuredClone(BELLS);
+  for(const s of series)s.time.slotNumbers=bellSchedule.slots.filter(b=>minute(b.startsAt)<minute(s.time.endsAt)&&minute(b.endsAt)>minute(s.time.startsAt)).map(b=>b.number);
+  return {schemaVersion:'0.1',institution:{id:'mipt',name:'МФТИ',timezone:'Europe/Moscow'},term:structuredClone(term),bellSchedule,groups:[...groups.values()],series,importMeta:{workbook:ir.name,hash:ir.hash,blocks,unresolved}};
+}
+
+// ФБВТ publishes concrete dates in week columns, with subject colors, not lesson-kind colors.
+function inferDatedMipt(ir,term){
+  const months=['январ','феврал','март','апрел','ма','июн','июл','август','сентябр','октябр','ноябр','декабр'];
+  const series=[],unresolved=[],blocks=[],bells=new Map();
+  const year=Number(/20\d{2}/.exec(ir.name)?.[0]||term.startsOn.slice(0,4));
+  const cohort=/ФБВТ/i.test(ir.name)?'ФБВТ · 2 курс магистратуры':'Общий поток';
+  let lastDate=term.endsOn;
+  for(const sheet of ir.sheets){
+    const headers=sheet.cells.filter(c=>/^\d+\s+недел/i.test(c.normalizedText));if(headers.length<3)continue;
+    const headerRow=headers[0].row;
+    const dateColumns=sheet.cells.filter(c=>c.row===headerRow).flatMap(c=>{
+      const match=/(\d{1,2})\s*([а-я]+)?\s*[-–]\s*(\d{1,2})\s*([а-я]+)/i.exec(c.normalizedText);if(!match)return [];
+      const month=months.findIndex(m=>lower(match[2]||match[4]).startsWith(m));if(month<0)return [];
+      const start=`${year+(month<7?1:0)}-${String(month+1).padStart(2,'0')}-${match[1].padStart(2,'0')}`;
+      return validDate(start)?[{col:c.col,start,monday:monday(start),ref:c.ref}]:[];
+    });
+    const dayLabels=['пн','вт','ср','чт','пт','сб','вс'];
+    const days=sheet.cells.filter(c=>dayLabels.includes(lower(c.normalizedText))).sort((a,b)=>a.row-b.row);
+    if(!dateColumns.length||!days.length)continue;
+    const timeColumn=sheet.cells.find(c=>c.row===days[0].row&&parseTime(c.normalizedText))?.col;
+    if(!timeColumn)continue;
+    blocks.push({sheet:sheet.name,header:headers[0].ref,timeColumn:address(days[0].row,timeColumn),groups:[cohort],layout:'dated-weeks'});
+    for(let i=0;i<days.length;i++){
+      const day=days[i],end=days[i+1]?.row-1||Math.max(...sheet.cells.map(c=>c.row))+1;
+      const times=sheet.cells.filter(c=>c.col===timeColumn&&c.row>=day.row&&c.row<end).flatMap(c=>{const time=parseTime(c.normalizedText);return time?[{row:c.row,...time}]:[];});
+      times.forEach(t=>bells.set(t.startsAt,{startsAt:t.startsAt,endsAt:t.endsAt}));
+      for(const cell of sheet.cells.filter(c=>dateColumns.some(d=>d.col===c.col)&&c.row>=day.row&&c.row<end&&/\p{L}/u.test(c.value))){
+        const geometry=sheet.merges.find(m=>m.from.row===cell.row&&m.from.col===cell.col)||{from:cell,to:cell,ref:cell.ref};
+        const slots=times.filter(t=>t.row>=geometry.from.row&&t.row<=geometry.to.row);
+        const column=dateColumns.find(c=>c.col===cell.col),date=addDays(column.monday,dayLabels.indexOf(lower(day.normalizedText)));
+        const reason=!slots.length?'В источнике не указано время':/^(Экзамены|Государственный праздник)$/i.test(cell.normalizedText)?'Общее примечание, без конкретного занятия':geometry.to.row>=end||geometry.to.col!==cell.col?'Неоднозначное объединение дат':null;
+        if(reason){unresolved.push({sheet:sheet.name,range:geometry.ref,rawText:cell.value,reason});continue;}
+        const dateCell=sheet.cells.find(c=>c.col===cell.col&&c.row===day.row-1),printedDay=parseInt(dateCell?.value,10);
+        if(printedDay!==Number(date.slice(-2))){unresolved.push({sheet:sheet.name,range:geometry.ref,rawText:cell.value,reason:'Дата в строке не совпадает с заголовком недели'});continue;}
+        const classification=classifyKind(cell.value,cell.style,false),parsed=semantics(cell.value);
+        const lines=cell.value.split(/\n+/).map(s=>s.trim()).filter(Boolean),location=lines.find(s=>/^(Арктика|Климентовский|Долгопрудный|Сбер)(?:\s|,|$)/i.test(s))||'';
+        const time={startsAt:slots[0].startsAt,endsAt:slots.at(-1).endsAt,slotNumbers:[]};
+        const startOverride=/(?:^|\s)с\s+(\d{1,2}:\d{2})/.exec(cell.value);if(startOverride&&minute(startOverride[1])<minute(time.endsAt))time.startsAt=startOverride[1].padStart(5,'0');
+        const sourceKey=`mipt:${term.id}:${sheet.name}:${geometry.ref}`,warnings=[...parsed.warnings,'Общий поток: номера групп в книге не указаны.'];
+        if(classification.kind==='other')warnings.push('Цвет обозначает предмет; тип занятия нужно уточнить.');
+        series.push({id:`lesson-${stable(sourceKey)}`,semanticKey:stable(cohort+'|'+date+'|'+lines[0]),title:lines[0],kind:classification.kind,kindEvidence:classification.evidence,cohorts:[{groupId:cohort}],recurrence:{weekdays:[weekday(date)],parity:'all',datesOnly:true,includeDates:[date],validFrom:term.startsOn,validTo:date>term.endsOn?date:term.endsOn},time,location,instructors:parsed.instructors,source:{adapter:'mipt-dated-weeks/0.2',sourceId:ir.hash,workbook:ir.name,sheet:sheet.name,ranges:[geometry.ref],rawText:cell.value,style:cell.style,fingerprint:stable(sourceKey)},confidence:{warnings},blocked:false,needsChoice:/\*|конкурс/i.test(cell.value)});
+        if(date>lastDate)lastDate=date;
+      }
+    }
+  }
+  if(!series.length)throw Error('Не найдены блоки «Дни / Часы / группы» или датированные недели. Эта структура пока не поддерживается.');
+  const bellSchedule={id:'mipt-dated-bells',validFrom:term.startsOn,slots:[...bells.values()].sort((a,b)=>a.startsAt.localeCompare(b.startsAt)).map((t,i)=>({number:i+1,...t}))};
+  for(const s of series)s.time.slotNumbers=bellSchedule.slots.filter(b=>minute(b.startsAt)<minute(s.time.endsAt)&&minute(b.endsAt)>minute(s.time.startsAt)).map(b=>b.number);
+  return {schemaVersion:'0.1',institution:{id:'mipt',name:'МФТИ',timezone:'Europe/Moscow'},term:{...structuredClone(term),endsOn:lastDate},bellSchedule,groups:[{id:cohort,label:cohort}],series,importMeta:{workbook:ir.name,hash:ir.hash,blocks,unresolved}};
 }
 export function importDiff(before,after) {
   const old=[...(before?.series||[])],changes=[];
