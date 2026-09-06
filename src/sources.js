@@ -1,6 +1,6 @@
 import {readXlsx} from './import/xlsx.js';
 import {inferMipt,applyOverrides,importDiff} from './import/mipt.js';
-export const PUBLIC_URL='https://lev-fedotovskiy.github.io/Setka/';
+export const PUBLIC_URL='https://lev-fedotovskii.github.io/Setka/';
 export function sourceState(schedule,source){
   if(!source)return 'missing';if(source.status!=='ok')return 'error';
   return schedule?.importMeta.hash===source.sha256?'current':'update';
