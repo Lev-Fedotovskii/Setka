@@ -7,7 +7,7 @@ try {
   page.on('pageerror',e=>console.error('Page error:',e.message));
   await page.clock.install({time:new Date('2026-09-06T08:04:59Z')});
   await page.clock.pauseAt(new Date('2026-09-06T08:04:59Z'));
-  await page.goto(base);await page.waitForSelector('.now-panel');
+  await page.goto(base);await page.locator('#dialog[open]').waitFor();await page.locator('#dialog [data-action=close]').click();await page.waitForSelector('.now-panel');
   assert.equal(await page.evaluate(()=>Notification.permission),'default');
   const cdp=await context.newCDPSession(page);
   await cdp.send('Browser.setPermission',{permission:{name:'notifications'},setting:'denied',origin:new URL(base).origin});

@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||'msedge'});
+const base=process.env.TEST_URL||'http://localhost:4175/Setka/';
+try{
+ const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'}),page=await context.newPage(),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));await page.goto(base);
+ await page.locator('#dialog[open]').waitFor();assert.match(await page.locator('#dialog h2').innerText(),/Добро пожаловать/);
+ await page.screenshot({path:'artifacts/031-welcome.png'});
+ await page.locator('#dialog [data-action=catalog]').click();await page.locator('[data-source]').filter({hasText:'1 курс БВО'}).click();
+ await page.locator('#import-group').selectOption('Б01-601');
+ const selected=page.locator('#import-form [name=record]');assert.equal(await selected.count(),await page.locator('#import-form [name=record]:checked').count());
+ const omitted=await selected.first().getAttribute('value');await selected.first().uncheck();
+ await page.locator('[data-action=correct-import]').nth(1).click();await page.locator('#correction-form .primary').click();assert.equal(await page.locator(`[name=record][value="${omitted}"]`).isChecked(),false);
+ await page.locator('#import-form .sticky-button').click();await page.locator('#apply-import').click();await page.locator('#setup-form .primary').click();
+ await page.locator('[data-action=add-task]').first().click();await page.locator('#task-form [name=title]').fill('Моя задача 031');
+ await page.screenshot({path:'artifacts/031-task.png'});
+ const submit=await page.locator('#task-form .primary').boundingBox();assert.ok(submit.y+submit.height<844);
+ await page.locator('#task-form .primary').click();
+ await page.locator('.mobile-nav [data-nav=more]').click();await page.locator('[data-action=catalog]').click();await page.locator('[data-source]').filter({hasText:'1 курс БВО'}).click();
+ assert.equal(await page.locator('#import-form [name=record]').count(),await page.locator('#import-form [name=record]:checked').count());
+ await page.locator('#import-form .sticky-button').click();await page.locator('#apply-import').click();assert.ok(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).tasks.some(t=>t.title==='Моя задача 031')));
+ await page.locator('.mobile-nav [data-nav=tasks]').click();await page.locator('#task-origin-filter').selectOption('mine');await page.locator('.task-title').filter({hasText:'Моя задача 031'}).click();assert.equal(await page.locator('#task-form').count(),0);await page.locator('[data-action=edit-task]').click();await page.locator('#task-form [name=minutes]').fill('90');await page.locator('#task-form .primary').click();
+ await page.locator('.mobile-nav [data-nav=week]').click();await page.locator('.grid-day').first().click();assert.equal(await page.locator('h1').innerText(),'Неделя');await page.locator('[data-action=expand-week]').click();await page.locator('#week-zoom').selectOption('0.3');
+ assert.ok(await page.locator('.week-grid').evaluate(e=>e.getBoundingClientRect().width<=e.parentElement.clientWidth+1));await page.screenshot({path:'artifacts/031-week-fit.png'});
+ await page.setViewportSize({width:844,height:390});await page.screenshot({path:'artifacts/031-week-landscape.png'});
+ await page.setViewportSize({width:1920,height:1080});await page.locator('#week-zoom').selectOption('1');await page.screenshot({path:'artifacts/031-week-desktop.png'});assert.ok((await page.locator('.grid-scroll').boundingBox()).width>1500);
+ await page.emulateMedia({media:'print'});await page.screenshot({path:'artifacts/031-print.png',fullPage:true});await page.pdf({path:'artifacts/031-week.pdf',preferCSSPageSize:true});await page.emulateMedia({media:'screen'});
+ await page.locator('.grid-day').first().click();assert.equal(await page.locator('.week-grid').count(),0);
+ await page.setViewportSize({width:320,height:640});await page.locator('[data-action=add-task]').first().click();await page.screenshot({path:'artifacts/031-task-small.png'});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.locator('#dialog [data-action=close]').click();
+ await page.locator('.mobile-nav [data-nav=more]').click();await page.locator('[data-action=catalog]').click();await page.locator('[data-source]').filter({hasText:'2 курса магистратуры 2026-2027'}).click();await page.locator('#import-form').waitFor();assert.ok(await page.locator('[name=unresolved]:checked').count()>0);await page.locator('#import-form .sticky-button').click();assert.equal(await page.locator('#apply-import').count(),0);assert.match(await page.locator('#toast').innerText(),/Уточните/);
+ assert.deepEqual(errors,[]);console.log('PASS 0.3.1: import defaults/reset/correction retention, unresolved gate, personal tasks, details/edit, week fit/navigation/print, small mobile.');
+}finally{await browser.close();}

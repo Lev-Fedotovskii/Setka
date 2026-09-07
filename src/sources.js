@@ -1,6 +1,11 @@
 import {readWorkbook} from './import/workbook.js';
 import {inferMipt,applyOverrides,importDiff} from './import/mipt.js';
 export const PUBLIC_URL='https://lev-fedotovskii.github.io/Setka/';
+export function sortSources(sources){
+  const course=s=>Number.isFinite(Number(s.course))&&Number(s.course)>0?Number(s.course):Infinity;
+  const compare=(a,b)=>String(a||'').localeCompare(String(b||''),'ru',{numeric:true});
+  return [...sources].sort((a,b)=>course(a)-course(b)||compare(a.program,b.program)||compare(a.school,b.school)||compare(a.label,b.label)||compare(a.id,b.id));
+}
 export function sourceState(schedule,source){
   if(!source)return 'missing';if(source.status!=='ok')return 'error';
   return schedule?.importMeta.hash===source.sha256?'current':'update';
@@ -20,8 +25,8 @@ export async function sourceCandidate(source,base,state){
   return schedule;
 }
 export function selectedUpdate(candidate,state){
-  const copy=structuredClone(candidate),old=state.schedule?.series||[],excluded=state.schedule?.importMeta.excluded||[];
-  copy.series=copy.series.filter(s=>!s.blocked&&s.cohorts.some(c=>c.groupId===state.groupId)&&!excluded.includes(s.source.fingerprint)&&(!s.needsChoice||old.some(o=>o.source.fingerprint===s.source.fingerprint)));
+  const copy=structuredClone(candidate);
+  copy.series=copy.series.filter(s=>!s.blocked&&s.cohorts.some(c=>c.groupId===state.groupId));
   return copy;
 }
 export function reconcileIds(before,after){

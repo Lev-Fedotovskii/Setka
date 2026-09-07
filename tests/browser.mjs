@@ -10,7 +10,7 @@ const context=await browser.newContext({viewport:{width:1440,height:1100}});
 const page=await context.newPage();await page.clock.setFixedTime(new Date('2026-09-06T08:00:00Z'));const errors=[];page.on('pageerror',e=>errors.push(e.message));
 await mkdir('artifacts',{recursive:true});
 try{
-  await page.goto(base);
+  await page.goto(base);await page.locator('#dialog[open]').waitFor();await page.locator('#dialog [data-action=close]').click();
   await page.waitForSelector('.now-panel');
   const parsed=await page.evaluate(async()=>{
     const {readXlsx}=await import('./src/import/xlsx.js');const {inferMipt}=await import('./src/import/mipt.js');

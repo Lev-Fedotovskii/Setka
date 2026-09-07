@@ -6,7 +6,7 @@ const context=await browser.newContext({serviceWorkers:'block'}),page=await cont
 page.on('pageerror',e=>errors.push(e.message));
 await page.clock.setFixedTime(new Date('2026-09-06T08:00:00Z'));
 try{
-  await page.goto(base);await page.locator('[data-action="catalog"]').click();
+  await page.goto(base);await page.locator('#dialog[open]').waitFor();await page.locator('#dialog [data-action=close]').click();await page.locator('[data-action="catalog"]:visible').click();
   await page.locator('[data-source]').filter({hasText:'1 курс БВО'}).click();
   await page.locator('#dialog').getByRole('button',{name:'Просмотреть изменения'}).click();await page.locator('#apply-import').click();await page.waitForTimeout(100);if(await page.locator('#setup-form').count())await page.locator('#setup-form .primary').click();
   await page.locator('[data-action="add-task"]').first().click();await page.locator('[name="title"]').fill('Личная задача при обновлении');await page.getByRole('button',{name:'Добавить задачу',exact:true}).click();
@@ -32,3 +32,4 @@ try{
   assert.equal(state.schedule.importMeta.hash,updated.catalog.sources.find(s=>s.program==='БВО').sha256);
   assert.deepEqual(errors,[]);console.log('PASS: actual XLSX modified in three cells → 3 changes → explicit review/apply → personal task survives.');
 }finally{await browser.close();}
+

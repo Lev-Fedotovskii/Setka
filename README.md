@@ -1,6 +1,8 @@
 # Setka / Сетка
 
-Version **0.3.0**. A personal university planner for MIPT. **Today comes first:** what is happening now, what comes next, and what fits into your free time.
+Version **0.3.1**. A personal university planner for MIPT. **Today comes first:** what is happening now, what comes next, and what fits into your free time.
+
+0.3.1 selects every discovered entry on each new import; uncertain records remain conspicuous and incomplete selected entries require correction before applying. It adds expanded/zoomable Week and landscape printing, automatic first-launch welcome, task details and a manually-created filter, aligned compact forms, and restores the actual 0.2.0 launcher artwork. Stable Android updates retain the 0.3.0 package and signing identity. See [patch decisions and verification](docs/design/DD-008-focused-patch.md).
 
 [Open the PWA](https://lev-fedotovskii.github.io/Setka/) · [Download Android APK](https://github.com/Lev-Fedotovskii/Setka/releases/latest) · [Android builds](https://github.com/Lev-Fedotovskii/Setka/actions/workflows/android.yml)
 

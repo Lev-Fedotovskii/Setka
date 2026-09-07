@@ -1,0 +1,17 @@
+# DD-008 — 0.3.1 focused patch
+
+2026-09-07. Supersedes the default-selection policy in DD-004/DD-007.
+
+Every discovered record in a new import starts selected, including subgroup alternatives, blocked records and unresolved source notes. Old `importMeta.excluded` lists never determine new defaults. Selection is independent of confidence. Selected blocked/unresolved records prevent applying the candidate until corrected or explicitly deselected; unknown kinds remain unknown and cannot generate academic tasks. Warnings and raw evidence remain visible. An in-progress review retains explicit checkbox choices through corrections and group changes. Compatible personal hide/correction overrides remain separate and are visibly explained. Personal tasks, work sessions and settings are untouched by import.
+
+Sources sort by numeric course metadata, then program/school/label, independent of filenames. The catalog is primary; local Excel is a secondary disclosure. Practical and laboratory records share the displayed name «Практикум» while retaining their distinct evidence/types and existing text-over-palette classification. Explicit chemistry seminar markers still win.
+
+Week uses available desktop width and can reduce the sidebar while keeping identity/navigation. Zoom includes fit-to-width, 65%, 100% and 135%. Coarse-pointer/mobile day headers do not navigate accidentally; desktop click navigation remains. Expanded landscape keeps compact controls. Print CSS provides an A4 landscape weekly timetable; Android invokes its PrintManager, browsers their print dialog (including Save as PDF where available). No new document-generation service.
+
+Fresh installations open welcome automatically. Mobile identity is separate from institution/group. Tasks open details with a visible Edit action; a separate origin filter shows only manually created tasks. Duration wording explains estimated work, independently of deadline. Optional priority/splitting/notes are disclosed together, and paired fields align at their inputs. Checkbox rows remain horizontal. Native time inputs open their platform picker on touch. A full custom wheel picker remains in #6 for 0.4.
+
+Android launcher resources are byte-for-byte restored from v0.2.0, including adaptive foreground/background and density variants. Stable package/signature remain unchanged, versionCode increases from 3 to 4. The OS navigation bar is transparent with dark buttons; the root paints the existing app surface behind it. System/cutout/IME padding continues protecting controls. Setka's own navigation appearance is unchanged. Platform basis: https://developer.android.com/develop/ui/views/layout/edge-to-edge .
+
+Validation: unit/import/data-preservation suite; existing browser integration suite; patch browser checks for import defaults/reset, clarification gating, details/edit, small-screen forms, mobile/desktop day interaction, fit zoom and print. Android CI expands to API 35 and 36, navigation modes/font scaling/rotation screenshots and actual 0.3.0-to-0.3.1 stable-key update retention. See CI results for completed evidence; physical Xiaomi testing is still tracked by #2 and is not claimed.
+
+Deferred: custom wheel picker and broader task planning (#6), study timer/statistics (#3), persistent status notification (#4), advanced cross-group plans (#5), full redesign after functional stability. No licence, account, tracking, cloud or storage-format change.

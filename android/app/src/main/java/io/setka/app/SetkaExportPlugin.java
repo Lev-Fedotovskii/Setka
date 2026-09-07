@@ -2,6 +2,7 @@ package io.setka.app;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.Context;
 import androidx.activity.result.ActivityResult;
 import com.getcapacitor.*;
 import com.getcapacitor.annotation.*;
@@ -10,6 +11,14 @@ import java.nio.charset.StandardCharsets;
 
 @CapacitorPlugin(name="SetkaExport")
 public class SetkaExportPlugin extends Plugin {
+  @PluginMethod public void printWeek(PluginCall call) {
+    getActivity().runOnUiThread(()->{
+      android.print.PrintManager manager=(android.print.PrintManager)getContext().getSystemService(Context.PRINT_SERVICE);
+      manager.print("Сетка — неделя",getBridge().getWebView().createPrintDocumentAdapter("Сетка — неделя"),
+        new android.print.PrintAttributes.Builder().setMediaSize(android.print.PrintAttributes.MediaSize.ISO_A4.asLandscape()).build());
+      call.resolve();
+    });
+  }
   @PluginMethod public void save(PluginCall call) {
     if(call.getString("text")==null){call.reject("Нет данных для экспорта");return;}
     Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);

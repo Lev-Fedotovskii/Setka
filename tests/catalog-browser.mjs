@@ -4,11 +4,11 @@ const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_C
 try{
   const context=await browser.newContext({serviceWorkers:'block'}),page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(e.message));await page.clock.setFixedTime(new Date('2026-09-06T08:00:00Z'));
-  await page.goto(base);await page.locator('[data-action=add-task]').first().click();
+  await page.goto(base);await page.locator('#dialog[open]').waitFor();await page.locator('#dialog [data-action=close]').click();await page.locator('[data-action=add-task]').first().click();
   await page.locator('[name=title]').fill('Личная задача для всех источников');await page.getByRole('button',{name:'Добавить задачу',exact:true}).click();
   const sources=await page.evaluate(async()=> (await(await fetch('./data/catalog.json')).json()).sources);
   assert.equal(sources.length,8);
-  const apply=async()=>{await page.locator('#dialog').getByRole('button',{name:'Просмотреть изменения',exact:true}).click();await page.locator('#apply-import').click();await page.waitForTimeout(100);if(await page.locator('#setup-form').count())await page.locator('#setup-form .primary').click();};
+  const apply=async()=>{for(const input of await page.locator('#import-form [name=unresolved],#import-form [data-blocked=true]').all())await input.uncheck();await page.locator('#dialog').getByRole('button',{name:'Просмотреть изменения',exact:true}).click();await page.locator('#apply-import').click();await page.waitForTimeout(100);if(await page.locator('#setup-form').count())await page.locator('#setup-form .primary').click();};
   const open=async id=>{await page.locator('.sidebar [data-nav=more]').click();await page.locator('[data-action=catalog]').click();await page.locator(`[data-source="${id}"]`).click();await page.waitForSelector('#import-form');};
   for(const source of sources){
     await open(source.id);await apply();

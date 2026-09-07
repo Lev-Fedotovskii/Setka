@@ -4,7 +4,7 @@ const base=process.env.TEST_URL||'http://localhost:4175/Setka/';
 const context=await chromium.launchPersistentContext('artifacts/installability-profile',{headless:true,channel:process.env.BROWSER_CHANNEL||'msedge'});
 try{
   const page=await context.newPage();
-  await page.goto(base);await page.waitForSelector('.now-panel');
+  await page.goto(base);await page.locator('#dialog[open]').waitFor();await page.locator('#dialog [data-action=close]').click();await page.waitForSelector('.now-panel');
   const details=await page.evaluate(async()=>{
     const reg=await navigator.serviceWorker.ready;
     const manifestUrl=document.querySelector('link[rel=manifest]').href;

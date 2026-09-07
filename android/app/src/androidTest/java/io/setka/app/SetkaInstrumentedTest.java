@@ -15,6 +15,56 @@ import org.junit.runner.RunWith;
 /** Runs only in the isolated Android test application/device, never normal user storage. */
 @RunWith(AndroidJUnit4.class)
 public class SetkaInstrumentedTest {
+  @Test public void seedPreviousStable() throws Exception {
+    try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
+      until(scenario,"document.querySelector('.now-panel')");
+      js(scenario,"document.querySelector('#dialog').close();document.querySelector('[data-action=add-task]').click();document.querySelector('#task-form [name=title]').value='Stable upgrade sentinel';document.querySelector('#task-form').requestSubmit()");
+      until(scenario,"JSON.parse(localStorage.getItem('setka.v1')).tasks.some(t=>t.title==='Stable upgrade sentinel')");
+    }
+  }
+  @Test public void previousStableDataSurvives() throws Exception {
+    try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
+      until(scenario,"document.querySelector('.now-panel')");
+      assertEquals("true",js(scenario,"JSON.parse(localStorage.getItem('setka.v1')).tasks.some(t=>t.title==='Stable upgrade sentinel')"));
+    }
+  }
+  private void screenshot(String name) throws Exception {
+    java.io.File folder=new java.io.File(InstrumentationRegistry.getInstrumentation().getTargetContext().getExternalFilesDir(null),"qa");folder.mkdirs();
+    android.graphics.Bitmap bitmap=InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
+    assertNotNull(bitmap);try(java.io.FileOutputStream out=new java.io.FileOutputStream(new java.io.File(folder,name+".png"))){bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,out);}
+  }
+  @Test public void systemBarsAndMobileLayouts() throws Exception {
+    try {
+      for(String mode:new String[]{"gestural","threebutton"}){
+        shell("cmd overlay enable-exclusive --category com.android.internal.systemui.navbar."+mode);
+        shell("settings put system font_scale 1.3");
+        shell("wm density "+(mode.equals("gestural")?"420":"320"));
+        try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
+          until(scenario,"document.querySelector('.now-panel')");
+          scenario.onActivity(activity->{
+            assertFalse(activity.getWindow().isNavigationBarContrastEnforced());
+            android.view.View web=activity.getBridge().getWebView();int[] p=new int[2];web.getLocationInWindow(p);
+            androidx.core.view.WindowInsetsCompat insets=androidx.core.view.ViewCompat.getRootWindowInsets(web);assertNotNull(insets);
+            assertTrue(p[1]>=insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars()).top);
+            android.view.View root=(android.view.View)web.getParent();assertTrue(root.getPaddingBottom()>=insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars()).bottom);
+          });
+          screenshot(mode+"-welcome");js(scenario,"document.querySelector('#dialog').close();document.querySelector('[data-action=add-task]').click()");
+          until(scenario,"document.querySelector('#task-form')");screenshot(mode+"-task");
+          js(scenario,"document.querySelector('#task-form [name=title]').focus()");
+          scenario.onActivity(a->{android.webkit.WebView web=a.getBridge().getWebView();web.requestFocus();((android.view.inputmethod.InputMethodManager)a.getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(web,android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);});
+          Thread.sleep(900);screenshot(mode+"-keyboard");
+          scenario.onActivity(a->{android.view.View web=a.getBridge().getWebView();android.view.View root=(android.view.View)web.getParent();androidx.core.view.WindowInsetsCompat insets=androidx.core.view.ViewCompat.getRootWindowInsets(web);assertTrue(root.getPaddingBottom()>=insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime()).bottom);});
+          shell("input keyevent KEYCODE_BACK");
+          assertEquals("true",js(scenario,"document.documentElement.scrollWidth<=innerWidth"));
+          js(scenario,"document.querySelector('#dialog').close()");
+          scenario.onActivity(a->a.setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
+          Thread.sleep(1200);until(scenario,"document.querySelector('.now-panel')");screenshot(mode+"-landscape");
+          scenario.onActivity(a->a.setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT));
+        }
+      }
+      shell("input keyevent KEYCODE_HOME");Thread.sleep(700);shell("input swipe 300 1000 300 200 400");Thread.sleep(700);screenshot("launcher");
+    } finally {shell("wm density reset");shell("settings put system font_scale 1.0");shell("cmd overlay enable-exclusive --category com.android.internal.systemui.navbar.threebutton");}
+  }
   private boolean clickSave(android.view.accessibility.AccessibilityNodeInfo node){
     if(node==null)return false;
     String text=node.getText()==null?"":node.getText().toString().trim();
@@ -62,6 +112,7 @@ public class SetkaInstrumentedTest {
     try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
       until(scenario,"document.querySelector('.now-panel')");
       assertEquals("true",js(scenario,"Capacitor.isNativePlatform()"));
+      js(scenario,"document.querySelector('#dialog').close()");
       scenario.onActivity(activity->{
         android.view.View web=activity.getBridge().getWebView();
         androidx.core.view.WindowInsetsCompat insets=androidx.core.view.ViewCompat.getRootWindowInsets(web);

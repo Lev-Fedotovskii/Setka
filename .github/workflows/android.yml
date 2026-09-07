@@ -8,6 +8,9 @@ permissions:
   contents: read
 jobs:
   apk:
+    strategy:
+      matrix:
+        api: [35, 36]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,14 +61,24 @@ jobs:
           SETKA_KEY_ALIAS: ${{ secrets.SETKA_KEY_ALIAS }}
           SETKA_KEY_PASSWORD: ${{ secrets.SETKA_KEY_PASSWORD }}
         with:
-          api-level: 35
+          api-level: ${{ matrix.api }}
           arch: x86_64
           profile: pixel_2
           disable-animations: true
           script: |
             cd android && ./gradlew :app:assembleReleaseAndroidTest -PtestBuildType=release --no-daemon
-            adb install android/app/build/outputs/apk/release/app-release.apk
+            curl --fail -L https://github.com/Lev-Fedotovskii/Setka/releases/download/v0.3.0/Setka-0.3.0.apk -o /tmp/setka-0.3.apk
+            echo '10da5d642fa2b5e557634f3be165997b2a5b0fed996b23d3e5db50d5c8953e94  /tmp/setka-0.3.apk' | sha256sum --check
+            adb install /tmp/setka-0.3.apk
             adb install android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
+            adb shell am instrument -w -e class 'io.setka.app.SetkaInstrumentedTest#seedPreviousStable' io.setka.app.release.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/setka-upgrade-seed.txt
+            grep -F 'OK (1 test)' /tmp/setka-upgrade-seed.txt
+            adb install -r android/app/build/outputs/apk/release/app-release.apk
+            adb shell am instrument -w -e class 'io.setka.app.SetkaInstrumentedTest#previousStableDataSurvives' io.setka.app.release.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/setka-upgrade.txt
+            grep -F 'OK (1 test)' /tmp/setka-upgrade.txt
+            adb shell am instrument -w -e class 'io.setka.app.SetkaInstrumentedTest#systemBarsAndMobileLayouts' io.setka.app.release.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/setka-layout.txt
+            grep -F 'OK (1 test)' /tmp/setka-layout.txt
+            adb pull /sdcard/Android/data/io.setka.app.release/files/qa /tmp/setka-screens
             adb shell am instrument -w -e class 'io.setka.app.SetkaInstrumentedTest#localImportPlanningPersistenceAndBackgroundNotification' io.setka.app.release.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/setka-native.txt
             grep -F 'OK (1 test)' /tmp/setka-native.txt
             adb install -r android/app/build/outputs/apk/release/app-release.apk
@@ -79,14 +92,17 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: Android-test-results
+          name: Android-test-results-${{ matrix.api }}
           path: |
             android/app/build/reports/androidTests/
             /tmp/setka-native.txt
             /tmp/setka-reinstall.txt
+            /tmp/setka-layout.txt
+            /tmp/setka-upgrade.txt
+            /tmp/setka-screens/
       - uses: actions/upload-artifact@v4
         with:
-          name: Setka-Android-APK
+          name: Setka-Android-APK-${{ matrix.api }}
           path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
       - name: Remove temporary signing material
