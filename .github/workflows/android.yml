@@ -61,7 +61,16 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          script: cd android && ./gradlew :app:connectedReleaseAndroidTest -PtestBuildType=release --no-daemon
+          script: |
+            cd android && ./gradlew :app:connectedReleaseAndroidTest -PtestBuildType=release '-Pandroid.testInstrumentationRunnerArguments.class=io.setka.app.SetkaInstrumentedTest#localImportPlanningPersistenceAndBackgroundNotification' --no-daemon
+            adb install -r android/app/build/outputs/apk/release/app-release.apk
+            adb shell am instrument -w -e class 'io.setka.app.SetkaInstrumentedTest#retainedDataAfterReinstall' io.setka.app.release.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/setka-reinstall.txt
+            grep -F 'OK (1 test)' /tmp/setka-reinstall.txt
+            curl --fail -L https://github.com/Lev-Fedotovskii/Setka/releases/download/v0.2.0/Setka-0.2.0-debug.apk -o /tmp/setka-0.2.apk
+            echo 'b15732ab2ed3108058f6df7db4a6e15a0494ee405befb1e70841c7ebbc979d36  /tmp/setka-0.2.apk' | sha256sum --check
+            adb install /tmp/setka-0.2.apk
+            adb shell pm path io.setka.app
+            adb shell pm path io.setka.app.release
       - uses: actions/upload-artifact@v4
         if: always()
         with:

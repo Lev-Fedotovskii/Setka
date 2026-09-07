@@ -158,7 +158,7 @@ export function importDiff(before,after) {
 }
 // Only reapply a correction if the exact source text still matches its evidence.
 export function applyOverrides(schedule,overrides={}) {
-  for(const u of schedule.importMeta?.unresolved||[]){const key=`unresolved:${u.sheet}:${u.range}`,o=overrides[key];if(o?.rawText===u.rawText&&o.replacements?.length&&!schedule.series.some(s=>s.source.fingerprint===key))schedule.series.push({source:{fingerprint:key,rawText:u.rawText,workbook:schedule.importMeta.workbook,sheet:u.sheet,ranges:[u.range]},id:key});}
+  for(const u of schedule.importMeta?.unresolved||[]){const key=`unresolved:${u.sheet}:${u.range}`,o=overrides[key];if(o?.rawText===u.rawText&&(!o.workbook||o.workbook===schedule.importMeta.workbook)&&o.replacements?.length&&!schedule.series.some(s=>s.source.fingerprint===key))schedule.series.push({source:{fingerprint:key,rawText:u.rawText,workbook:schedule.importMeta.workbook,sheet:u.sheet,ranges:[u.range]},id:key});}
   const replaced=new Set();
   schedule.series=schedule.series.flatMap(s=>{
     const o=overrides[s.source.fingerprint];

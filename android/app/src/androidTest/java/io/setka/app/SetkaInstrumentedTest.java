@@ -35,6 +35,14 @@ public class SetkaInstrumentedTest {
   private void shell(String command) throws Exception {
     try(java.io.InputStream stream=new android.os.ParcelFileDescriptor.AutoCloseInputStream(InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(command))){stream.readAllBytes();}
   }
+  @Test public void retainedDataAfterReinstall() throws Exception {
+    try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
+      until(scenario,"document.querySelector('.now-panel')");
+      assertEquals("true",js(scenario,"JSON.parse(localStorage.getItem('setka.v1')).tasks.some(t=>t.title==='Android verification task')"));
+      assertEquals("true",js(scenario,"JSON.parse(localStorage.getItem('setka.v1')).sessions.length===1"));
+      assertEquals("true",js(scenario,"JSON.parse(localStorage.getItem('setka.v1')).settings.onboarded"));
+    }
+  }
   @Test public void localImportPlanningPersistenceAndBackgroundNotification() throws Exception {
     Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
     String packageId=context.getPackageName();

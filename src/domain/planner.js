@@ -55,7 +55,7 @@ export function reopenTask(state,id){
 }
 // Explicit, reviewable catch-up is restricted to seven days and never advances the live cursor.
 export function previousWeekTasks(state,now){
-  const copy=structuredClone(state);copy.tasks=[];copy.generatedThrough={date:addDays(now.date,-7),minute:0};
+  const copy=structuredClone(state);copy.tasks=[];copy.generatedThrough={date:addDays(now.date,-7),minute:now.minute};
   catchUp(copy,now);return copy.tasks.slice(0,30);
 }
 // Cursor is persisted even when no rule fires. Enabling a rule is prospective.

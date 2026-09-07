@@ -55,3 +55,6 @@ test('hidden lessons and weekly personal blocks resolve separately from universi
  const s=state();s.schedule.series[0].hidden=true;assert.equal(occurrences(s.schedule,s.groupId,'2026-09-07').length,0);
  s.events=[{id:'lunch',title:'Обед',date:'2026-09-07',start:780,end:810,repeat:'weekly',repeatUntil:'2026-09-21'}];assert.equal(dayEvents(s,'2026-09-14').length,1);assert.equal(dayEvents(s,'2026-09-28').length,0);
 });
+test('an unresolved correction from another workbook cannot create an incomplete record',()=>{
+ const s=state();s.schedule.series=[];s.schedule.importMeta.unresolved=[{sheet:'S',range:'E50',rawText:'Интенсив'}];applyOverrides(s.schedule,{'unresolved:S:E50':{workbook:'other.xls',rawText:'Интенсив',replacements:[series()]}});assert.equal(s.schedule.series.length,0);
+});
