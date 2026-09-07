@@ -63,7 +63,11 @@ jobs:
           profile: pixel_2
           disable-animations: true
           script: |
-            cd android && ./gradlew :app:connectedReleaseAndroidTest -PtestBuildType=release '-Pandroid.testInstrumentationRunnerArguments.class=io.setka.app.SetkaInstrumentedTest#localImportPlanningPersistenceAndBackgroundNotification' --no-daemon
+            cd android && ./gradlew :app:assembleReleaseAndroidTest -PtestBuildType=release --no-daemon
+            adb install android/app/build/outputs/apk/release/app-release.apk
+            adb install android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
+            adb shell am instrument -w -e class 'io.setka.app.SetkaInstrumentedTest#localImportPlanningPersistenceAndBackgroundNotification' io.setka.app.release.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/setka-native.txt
+            grep -F 'OK (1 test)' /tmp/setka-native.txt
             adb install -r android/app/build/outputs/apk/release/app-release.apk
             adb shell am instrument -w -e class 'io.setka.app.SetkaInstrumentedTest#retainedDataAfterReinstall' io.setka.app.release.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/setka-reinstall.txt
             grep -F 'OK (1 test)' /tmp/setka-reinstall.txt
@@ -76,7 +80,10 @@ jobs:
         if: always()
         with:
           name: Android-test-results
-          path: android/app/build/reports/androidTests/
+          path: |
+            android/app/build/reports/androidTests/
+            /tmp/setka-native.txt
+            /tmp/setka-reinstall.txt
       - uses: actions/upload-artifact@v4
         with:
           name: Setka-Android-APK
