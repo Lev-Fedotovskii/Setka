@@ -4,10 +4,10 @@ export const BELLS = { id:'mipt-2026-09', validFrom:'2026-09-01', slots:[['09:00
 export function occurrences(schedule, groupId, date) {
   if (!schedule || date < schedule.term.startsOn || date > schedule.term.endsOn) return [];
   const parity = academicWeek(date, schedule.term).parity;
-  return schedule.series.filter(s => s.cohorts.some(c=>c.groupId===groupId) && date >= s.recurrence.validFrom && date <= s.recurrence.validTo && !s.recurrence.excludeDates?.includes(date) && (s.recurrence.includeDates?.includes(date) || (!s.recurrence.datesOnly && (s.recurrence.weekdays.includes(weekday(date)) && (s.recurrence.parity==='all' || s.recurrence.parity===parity))))).map(s=>({...s, id:`${s.id}@${date}`,seriesId:s.id,date,start:minute(s.time.startsAt),end:minute(s.time.endsAt),type:'lesson'})).sort((a,b)=>a.start-b.start || a.id.localeCompare(b.id));
+  return schedule.series.filter(s => !s.hidden && s.cohorts.some(c=>c.groupId===groupId) && date >= s.recurrence.validFrom && date <= s.recurrence.validTo && !s.recurrence.excludeDates?.includes(date) && (s.recurrence.includeDates?.includes(date) || (!s.recurrence.datesOnly && (s.recurrence.weekdays.includes(weekday(date)) && (s.recurrence.parity==='all' || s.recurrence.parity===parity))))).map(s=>({...s, id:`${s.id}@${date}`,seriesId:s.id,date,start:minute(s.time.startsAt),end:minute(s.time.endsAt),type:'lesson'})).sort((a,b)=>a.start-b.start || a.id.localeCompare(b.id));
 }
 export function dayEvents(state, date) {
-  return [...occurrences(state.schedule,state.groupId,date), ...state.events.filter(e=>e.date===date).map(e=>({...e,type:'personal'})), ...state.sessions.filter(s=>s.date===date && s.status!=='skipped').map(s=>({...s,type:'session',title:state.tasks.find(t=>t.id===s.taskId)?.title || 'Работа над задачей',kind:'work'}))].sort((a,b)=>a.start-b.start);
+  return [...occurrences(state.schedule,state.groupId,date), ...state.events.filter(e=>e.date===date||(e.repeat==='weekly'&&date>=e.date&&(!e.repeatUntil||date<=e.repeatUntil)&&weekday(date)===weekday(e.date))).map(e=>({...e,type:'personal'})), ...state.sessions.filter(s=>s.date===date && s.status!=='skipped').map(s=>({...s,type:'session',title:state.tasks.find(t=>t.id===s.taskId)?.title || 'Работа над задачей',kind:'work'}))].sort((a,b)=>a.start-b.start);
 }
 export function overlaps(events) {
   return events.flatMap((a,i)=>events.slice(i+1).filter(b=>a.start<b.end && b.start<a.end).map(b=>[a,b]));

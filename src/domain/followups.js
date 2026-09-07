@@ -5,7 +5,11 @@ export const DEFAULT_RULES=[
   {id:'seminar-homework',kind:'seminar',title:'Сделать ДЗ',minutes:60,enabled:true},
   {id:'lab-report',kind:'lab',alsoKinds:['practice'],title:'Оформить практикум',minutes:60,enabled:true}
 ];
-export const ruleFor=(rules,kind)=>rules.find(r=>r.enabled&&(r.kind===kind||r.alsoKinds?.includes(kind)));
+export function ruleFor(rules,kind){
+  if(kind==='other'||kind==='sport')return undefined;
+  const rule=rules.find(r=>r.kind===kind)||rules.find(r=>r.alsoKinds?.includes(kind));
+  return rule?.enabled?rule:undefined;
+}
 export function nextClassDate(state,event){
   for(let date=addDays(event.date,1);date<=state.schedule.term.endsOn;date=addDays(date,1)){
     if(occurrences(state.schedule,state.groupId,date).some(e=>e.title===event.title&&e.kind===event.kind))return date;

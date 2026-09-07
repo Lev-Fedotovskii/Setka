@@ -3,12 +3,13 @@ apply plugin: 'com.android.application'
 android {
     namespace = "io.setka.app"
     compileSdk = rootProject.ext.compileSdkVersion
+    testBuildType project.findProperty('testBuildType') ?: 'debug'
     defaultConfig {
         applicationId "io.setka.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "0.2.0"
+        versionCode 3
+        versionName "0.3.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,11 +17,31 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        stableRelease {
+            if (System.getenv('SETKA_KEYSTORE_PATH')) {
+                storeFile file(System.getenv('SETKA_KEYSTORE_PATH'))
+                storePassword System.getenv('SETKA_STORE_PASSWORD')
+                keyAlias System.getenv('SETKA_KEY_ALIAS')
+                keyPassword System.getenv('SETKA_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
+            // The unrecoverable CI debug identity cannot update v0.2.0.
+            // Side-by-side installation keeps that app and its personal data intact.
+            applicationIdSuffix '.release'
+            signingConfig signingConfigs.stableRelease
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+}
+
+gradle.taskGraph.whenReady { graph ->
+    if (graph.allTasks.any { it.name == 'packageRelease' } && !System.getenv('SETKA_KEYSTORE_PATH')) {
+        throw new GradleException('Stable release signing is required; refusing an unsigned release.')
     }
 }
 

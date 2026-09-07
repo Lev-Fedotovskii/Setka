@@ -8,7 +8,7 @@ try{
   await page.locator('[name=title]').fill('Личная задача для всех источников');await page.getByRole('button',{name:'Добавить задачу',exact:true}).click();
   const sources=await page.evaluate(async()=> (await(await fetch('./data/catalog.json')).json()).sources);
   assert.equal(sources.length,8);
-  const apply=async()=>{await page.locator('#dialog').getByRole('button',{name:'Просмотреть изменения',exact:true}).click();await page.locator('#apply-import').click();};
+  const apply=async()=>{await page.locator('#dialog').getByRole('button',{name:'Просмотреть изменения',exact:true}).click();await page.locator('#apply-import').click();await page.waitForTimeout(100);if(await page.locator('#setup-form').count())await page.locator('#setup-form .primary').click();};
   const open=async id=>{await page.locator('.sidebar [data-nav=more]').click();await page.locator('[data-action=catalog]').click();await page.locator(`[data-source="${id}"]`).click();await page.waitForSelector('#import-form');};
   for(const source of sources){
     await open(source.id);await apply();

@@ -10,8 +10,9 @@ export function classifyKind(raw, style={}, profile=false) {
   const color=style.fill?.rgb?.slice(-6).toUpperCase();
   const inferred=profile && style.fill?.pattern==='solid' ? Object.entries(MIPT_PALETTE).find(([,v])=>v===color)?.[0] : null;
   // Explicit text wins, including yellow chemistry with an explicit (с) suffix.
-  const kind=explicit||inferred||'other';
-  return {kind,evidence:{method:explicit?'text':inferred?'mipt-palette':'unresolved',profile:profile?'mipt-timetable-2026-v2':null,color:color||null},warnings:explicit&&inferred&&explicit!==inferred&&!(explicit==='lab'&&inferred==='practice')&&explicit!=='sport'?['Текст уточняет тип вопреки цвету ячейки.']:[]};
+  const ordinary=!explicit&&inferred==='practice'&&/иностранн[а-я]* язык|английск[а-я]* язык|программирован|информатик/.test(text);
+  const kind=explicit||(ordinary?'class':inferred)||'other';
+  return {kind,evidence:{method:explicit?'text':ordinary?'ordinary-subject':inferred?'mipt-palette':'unresolved',profile:profile?'mipt-timetable-2026-v3':null,color:color||null},warnings:ordinary?['Обычное занятие; наличие домашнего задания не определяется цветом.']:explicit&&inferred&&explicit!==inferred&&!(explicit==='lab'&&inferred==='practice')&&explicit!=='sport'?['Текст уточняет тип вопреки цвету ячейки.']:[]};
 }
 export function recognizePalette(sheet) {
   const colors=new Set(sheet.cells.filter(c=>c.style?.fill?.pattern==='solid').map(c=>c.style.fill.rgb?.slice(-6).toUpperCase()));

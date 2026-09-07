@@ -21,12 +21,15 @@ export function semantics(raw) {
   if(odd && even)warnings.push('В одной ячейке обе чётности: требуется разделить вручную.');
   if(/подгр|\s\/\s|\*|факультатив/.test(norm))warnings.push('Подгруппа, альтернатива или примечание: проверьте исходный текст.');
   let kind=/физическая культура/.test(norm)?'sport':/лаборатор|\bлаб\./.test(norm)?'lab':/лекци/.test(norm)?'lecture':/семинар/.test(norm)?'seminar':'other';
-  let title=text.split(',')[0].trim();
-  const tail=/\s*[-–]\s*([^–—]+)$/.exec(text);
+  const tail=/\s*[-–—]\s*((?:\d{1,4}[а-яА-Я]?(?:\s*[,/]\s*\d{1,4}[а-яА-Я]?)*\s*(?:[А-Яа-яЁё.]+)?|(?:Гл|Б|М)\.[А-Яа-яЁё.]+))\s*$/.exec(text);
   let location=tail?.[1]?.trim() || '';
   if(location.length>45 || /\d{1,2}:\d{2}/.test(location))location='';
-  if(location && title.endsWith(tail[0]))title=title.slice(0,-tail[0].length);
-  const instructor=text.match(/[А-ЯЁ][а-яё-]+\s+[А-ЯЁ]\.\s*[А-ЯЁ]\./g)||[];
+  const subjectText=location?text.slice(0,tail.index):text;
+  const namePattern=/(?:[А-ЯЁ][а-яё]+(?:-[А-ЯЁ][а-яё]+)?\s+[А-ЯЁ]\.\s*[А-ЯЁ]\.|[А-ЯЁ]\.\s*[А-ЯЁ]\.\s*[А-ЯЁ][а-яё]+(?:-[А-ЯЁ][а-яё]+)?)/g;
+  const instructor=[...new Set(text.match(namePattern)||[])];
+  let title=subjectText.split(',')[0].trim();
+  for(const name of instructor)title=title.replace(name,'').trim();
+  title=title.replace(/\s*(?:доцент|доц\.|профессор|проф\.|ст\.?\s*пр\.|преп\.)\s*$/i,'').replace(/[\s,;–—-]+$/,'');
   return {title,kind,location,instructors:instructor,parity:odd?'odd':even?'even':'all',warnings,blocked:odd&&even};
 }
 export function inferMipt(ir,term=DEFAULT_TERM) {
@@ -78,7 +81,7 @@ export function inferMipt(ir,term=DEFAULT_TERM) {
           const slotNumbers=BELLS.slots.filter(b=>minute(b.startsAt)<minute(time.endsAt) && minute(b.endsAt)>minute(time.startsAt)).map(b=>b.number);
           const sourceKey=`mipt:${term.id}:${sheet.name}:${geometry.ref}`;
           const semanticKey=stable([cohorts.map(c=>c.groupId+':'+(c.variant||'')).sort().join(','),DAYS.indexOf(lower(day.normalizedText))+1,parsed.parity,lower(parsed.title)].join('|'));
-          series.push({id:`lesson-${stable(sourceKey)}`,semanticKey,title:parsed.title,kind:parsed.kind,kindEvidence:classification.evidence,cohorts,recurrence:{weekdays:[DAYS.indexOf(lower(day.normalizedText))+1],parity:parsed.parity,validFrom:term.startsOn,validTo:term.endsOn},time:{...time,slotNumbers},location:parsed.location,instructors:parsed.instructors,source:{adapter:'mipt-xlsx-local/0.1',sourceId:ir.hash,workbook:ir.name,sheet:sheet.name,ranges:[geometry.ref],rawText:cell.value,style:cell.style||null,fingerprint:stable(sourceKey)},confidence:{warnings},blocked,needsChoice:cohorts.some(c=>c.variant)||blocked||/подгр|\s\/\s|\*/.test(lower(cell.value))});
+          series.push({id:`lesson-${stable(sourceKey)}`,semanticKey,title:parsed.title,kind:parsed.kind,kindEvidence:classification.evidence,cohorts,recurrence:{weekdays:[DAYS.indexOf(lower(day.normalizedText))+1],parity:parsed.parity,validFrom:term.startsOn,validTo:term.endsOn},time:{...time,slotNumbers},location:parsed.location,instructors:parsed.instructors,source:{adapter:'mipt-xlsx-local/0.1',sourceId:ir.hash,workbook:ir.name,sheet:sheet.name,ranges:[geometry.ref],rawText:cell.value,style:cell.style||null,fingerprint:stable(sourceKey)},confidence:{warnings},blocked,needsChoice:cohorts.some(c=>c.variant)||blocked||/подгр|\s\/\s/.test(lower(cell.value))});
         }
       }
     }
@@ -144,6 +147,7 @@ export function importDiff(before,after) {
   const old=[...(before?.series||[])],changes=[];
   for(const s of after.series) {
     let i=old.findIndex(x=>x.semanticKey===s.semanticKey && x.source.fingerprint===s.source.fingerprint);
+    if(i<0)i=old.findIndex(x=>x.source.fingerprint===s.source.fingerprint&&x.source.rawText===s.source.rawText&&x.id.split(':variant-')[1]===s.id.split(':variant-')[1]);
     if(i<0){const candidates=old.map((x,i)=>({x,i})).filter(({x})=>x.semanticKey===s.semanticKey);if(candidates.length===1)i=candidates[0].i;}
     if(i<0){changes.push({type:'added',after:s});continue;}
     const b=old.splice(i,1)[0];
@@ -154,6 +158,16 @@ export function importDiff(before,after) {
 }
 // Only reapply a correction if the exact source text still matches its evidence.
 export function applyOverrides(schedule,overrides={}) {
-  for(const s of schedule.series){const o=overrides[s.source.fingerprint];if(o?.rawText===s.source.rawText)s.kind=o.kind;}
+  for(const u of schedule.importMeta?.unresolved||[]){const key=`unresolved:${u.sheet}:${u.range}`,o=overrides[key];if(o?.rawText===u.rawText&&o.replacements?.length&&!schedule.series.some(s=>s.source.fingerprint===key))schedule.series.push({source:{fingerprint:key,rawText:u.rawText,workbook:schedule.importMeta.workbook,sheet:u.sheet,ranges:[u.range]},id:key});}
+  const replaced=new Set();
+  schedule.series=schedule.series.flatMap(s=>{
+    const o=overrides[s.source.fingerprint];
+    if(o?.workbook&&o.workbook!==s.source.workbook)return [s];
+    if(o?.rawText!==s.source.rawText){if(o)s.confidence?.warnings.push('Источник изменился: прежнее личное уточнение требует повторной проверки.');return [s];}
+    if(o.replacements&&replaced.has(s.source.fingerprint))return [];
+    if(o.replacements)replaced.add(s.source.fingerprint);
+    if(o.replacements)return o.replacements.map((p,i)=>({...structuredClone(s),...structuredClone(p),id:i?`${s.id}:variant-${i}`:s.id,source:s.source,blocked:false,needsChoice:false,confidence:{warnings:['Личное уточнение по исходной записи.']}}));
+    if(o.kind)s.kind=o.kind;return [s];
+  });
   return schedule;
 }

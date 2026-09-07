@@ -1,6 +1,8 @@
 import {DEFAULT_RULES} from './domain/followups.js';
 import {DEFAULT_NOTIFICATIONS} from './domain/notifications.js';
 import {validDate,minute} from './domain/dates.js';
+import {semantics} from './import/mipt.js';
+import {classifyKind} from './import/kinds.js';
 export const STORAGE_KEY='setka.v1';
 export function newState(date) {
   return {version:1,schedule:null,groupId:'Б01-601',tasks:[],sessions:[],events:[],overrides:{},generatedKeys:[],generatedThrough:{date,minute:0},settings:{dayStart:540,dayEnd:1260},notifications:{...DEFAULT_NOTIFICATIONS},rules:structuredClone(DEFAULT_RULES)};
@@ -30,6 +32,7 @@ export function validateBackup(s){
     const n=s.notifications;
     if(['enabled','lessons','sessions','followups'].some(k=>typeof n[k]!=='boolean')||['lessonLead','sessionLead'].some(k=>!Number.isInteger(n[k])||n[k]<0||n[k]>60)||['quietStart','quietEnd'].some(k=>!Number.isInteger(n[k])||n[k]<0||n[k]>=1440))throw Error('Некорректные настройки уведомлений.');
   }
+  if(s.events.some(e=>e.repeat&&e.repeat!=='weekly'||e.repeat==='weekly'&&(!validDate(e.repeatUntil)||e.repeatUntil<e.date)))throw Error('Некорректное повторение события.');
   if(s.events.some(e=>typeof e.id!=='string'||typeof e.title!=='string'))throw Error('Некорректные события.');
   if(s.tasks.some(t=>typeof t.splittable!=='boolean'||!Number.isFinite(t.estimatedMinutes)||t.estimatedMinutes<=0))throw Error('Некорректная оценка задачи.');
   if(s.generatedThrough&&(!Number.isInteger(s.generatedThrough.minute)||s.generatedThrough.minute<0||s.generatedThrough.minute>=1440))throw Error('Некорректное время генерации.');
@@ -39,7 +42,7 @@ export function validateBackup(s){
     if(sc.term.startsOn>sc.term.endsOn||!['odd','even'].includes(sc.term.parityAnchor.parity)||!Array.isArray(sc.groups)||!sc.importMeta||typeof sc.importMeta.workbook!=='string')throw Error('Некорректный семестр или источник.');
     try{new Intl.DateTimeFormat('en',{timeZone:sc.institution.timezone});}catch{throw Error('Некорректный часовой пояс.');}
     const validClock=t=>typeof t==='string'&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(t);
-    if(sc.series.some(e=>!validClock(e.time.startsAt)||!validClock(e.time.endsAt)||!validDate(e.recurrence.validFrom)||!validDate(e.recurrence.validTo)||!e.recurrence.weekdays.every(d=>Number.isInteger(d)&&d>=1&&d<=7)||!['lecture','seminar','lab','practice','sport','other'].includes(e.kind)||typeof e.id!=='string'||typeof e.source.rawText!=='string'||!Array.isArray(e.confidence.warnings)||!Array.isArray(e.time.slotNumbers)))throw Error('Некорректные поля занятия.');
+    if(sc.series.some(e=>!validClock(e.time.startsAt)||!validClock(e.time.endsAt)||!validDate(e.recurrence.validFrom)||!validDate(e.recurrence.validTo)||!e.recurrence.weekdays.every(d=>Number.isInteger(d)&&d>=1&&d<=7)||!['lecture','seminar','lab','practice','class','sport','other'].includes(e.kind)||typeof e.id!=='string'||typeof e.source.rawText!=='string'||!Array.isArray(e.confidence.warnings)||!Array.isArray(e.time.slotNumbers)))throw Error('Некорректные поля занятия.');
   }
 }
 
@@ -50,6 +53,16 @@ export function migrateState(state){
     const defaultRule=DEFAULT_RULES.find(r=>r.id===rule.id);
     if(defaultRule&&['Оформить конспект','Решить домашнее задание','Подготовить отчёт'].includes(rule.title))rule.title=defaultRule.title;
   }
-  state.productVersion=2;
+  if((state.productVersion||0)<3)for(const s of state.schedule?.series||[]){
+    if(state.overrides?.[s.source.fingerprint]?.rawText===s.source.rawText)continue;
+    if(s.source.adapter?.startsWith('mipt-dated'))continue;
+    const parsed=semantics(s.source.rawText);
+    s.title=parsed.title;s.location=parsed.location;s.instructors=parsed.instructors;
+    if(s.kindEvidence?.method==='mipt-palette'){
+      const classified=classifyKind(s.source.rawText,s.source.style,!!s.kindEvidence.profile);
+      s.kind=classified.kind;s.kindEvidence=classified.evidence;
+    }
+  }
+  state.productVersion=3;
   return state;
 }

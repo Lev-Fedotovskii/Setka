@@ -13,7 +13,7 @@ for(const c of cases)test(`real XLS: ${c.filename}`,async()=>{
 test('XLS preserves observed fills and independent time columns',()=>{
   const r=parsed.get('mipt-70716429b751b00e'),byRange=ref=>r.series.find(s=>s.source.ranges[0]===ref);
   assert.equal(byRange('C20:J21').kind,'lecture');assert.equal(byRange('C22:C23').kind,'seminar');
-  assert.equal(byRange('C18:C19').kind,'practice');assert.equal(byRange('I16:I17').kind,'sport');
+  assert.equal(byRange('C18:C19').kind,'class');assert.equal(byRange('I16:I17').kind,'sport');
   assert.ok(r.importMeta.blocks.length>5);
 });
 test('small ФАКТ XLS recognizes pink/cyan and its actual bell times',()=>{

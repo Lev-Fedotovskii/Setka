@@ -1,6 +1,6 @@
 # Setka / Сетка
 
-A personal university planner for MIPT. **Today comes first:** what is happening now, what comes next, and what fits into your free time.
+Version **0.3.0**. A personal university planner for MIPT. **Today comes first:** what is happening now, what comes next, and what fits into your free time.
 
 [Open the PWA](https://lev-fedotovskii.github.io/Setka/) · [Download Android APK](https://github.com/Lev-Fedotovskii/Setka/releases/latest) · [Android builds](https://github.com/Lev-Fedotovskii/Setka/actions/workflows/android.yml)
 
@@ -60,9 +60,9 @@ The app checks the feed on launch/resume, reconnect and manual refresh. It displ
 
 ## Lesson kinds and follow-up tasks
 
-In this fixture, pink `FF99CC` supports lecture classification, cyan `CCFFFF` supports seminar, and pale yellow `FFFF99` supports practical classes. Explicit text wins. Yellow chemistry with `(с)` is a seminar; yellow chemistry without an explicit marker can be practical. Sport overrides color. Unknown palettes or unresolved evidence stay generic. Color never determines parity.
+In this fixture, pink `FF99CC` supports lecture classification, cyan `CCFFFF` supports seminar, and pale yellow `FFFF99` supports practical classes. Explicit text wins. Yellow chemistry with `(с)` is a seminar; yellow chemistry without an explicit marker can be practical. Yellow language/programming classes are ordinary classes, with no homework implied by color. Sport overrides color. Unknown palettes or unresolved evidence stay generic. Color never determines parity.
 
-Default tasks are “Разобрать материал лекции”, “Сделать ДЗ” and “Оформить практикум”, estimated at 30/60/60 minutes. Each carries an occurrence ID and a compact lesson date/time reference. They appear after lesson completion or the next launch, remain unscheduled until planned, and are generated once. The deadline defaults to the next same-subject/same-kind class when one exists. Rules and estimates are configurable. Existing users' disabled rules and custom estimates are preserved during migration.
+Default tasks are “Разобрать материал лекции”, “Сделать ДЗ” and “Оформить практикум”, estimated at 30/60/60 minutes. Each carries an occurrence ID and a compact lesson date/time reference. They appear after lesson completion or the next launch, remain unscheduled until planned, and are generated once. The deadline defaults to the next same-subject/same-kind class when one exists. Rules and estimates are configurable, including an opt-in ordinary-class rule. Welcome setup includes these preferences; an explicit seven-day review can add up to 30 previous tasks without duplicates. Existing users' disabled rules and custom estimates are preserved during migration.
 
 ## Notifications
 
@@ -75,20 +75,11 @@ See [Capacitor's notification documentation](https://capacitorjs.com/docs/apis/l
 
 ## Android APK
 
-The Android workflow publishes **Setka-Android-APK** artifacts. Download the artifact from a successful run and install `app-debug.apk`, allowing installation from that download source when Android asks.
+The Android workflow publishes a **stable signed release APK**. See [release and migration instructions](docs/android-release.md).
 
-For a local build, install Java 21 and Android SDK 36, set `JAVA_HOME` and `ANDROID_HOME`, then:
+**Android 0.2.0 users: the stable edition installs alongside the old app, preserving its data.** The old CI debug signing key was not retained; this is not an in-place update. Keep the old app until you have verified a complete backup/restore. If the old export fails, do not uninstall it; the migration guide includes computer-assisted recovery. Future stable updates retain one protected signing key and package identity.
 
-```sh
-npm ci
-npm run build
-npx cap sync android
-cd android
-# Windows: gradlew.bat assembleDebug
-./gradlew assembleDebug
-```
-
-Output: `android/app/build/outputs/apk/debug/app-debug.apk`. These are installable development-signed APKs, not Play Store releases. Keys are excluded from Git. Separate CI runs can use different development keys, so export a backup before reinstalling an APK from another signing source. A stable published release APK is provided separately when available.
+Local builds require Java 21 and Android SDK 36. Run `npm ci`, `npm run build`, `npx cap sync android`, then `android/gradlew -p android assembleDebug` for a development build. Stable release builds require the protected signing environment described in the guide. Keys never belong in Git.
 
 ## Architecture and development notes
 
@@ -102,4 +93,6 @@ Output: `android/app/build/outputs/apk/debug/app-debug.apk`. These are installab
 
 Read `docs/design/` before changing import semantics. The original fixture is unchanged. The sample JSON is partial and contains a stale room: the workbook says 515 ГК at C12:C13, whereas the sample says 230 ГК. DD-003 was not present in the supplied materials; DD-004/DD-005 describe the implemented decisions and limits.
 
-Known limits: complex mixed-parity cell splitting, arbitrary workbook layouts beyond those documented, source exception editing, multi-device sync, ICS and dependable closed-PWA push. Semester dates remain reviewable. The ФБВТ workbook contains a conflicting date and an intensive with no stated time; these entries are withheld and shown in review. LocalStorage has browser/device storage limits; export backups before clearing application data.
+Known limits: complex mixed-parity cell splitting, arbitrary workbook layouts beyond those documented, advanced source matching, multi-device sync, ICS and dependable closed-PWA push. Semester dates remain reviewable. The ФБВТ workbook contains a conflicting date and an intensive with no stated time; these entries are withheld and shown in review. LocalStorage has browser/device storage limits; export backups before clearing application data.
+
+Alpha improvements include editable imported entries/variants, hidden lessons, task editing and completion reversal, weekly personal blocks, clearer date navigation, mobile Week jumps, native safe areas and Android file export. See [DD-007](docs/design/DD-007-alpha-feedback.md) for decisions and deferred scope.

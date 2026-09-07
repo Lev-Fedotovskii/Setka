@@ -8,7 +8,7 @@ await page.clock.setFixedTime(new Date('2026-09-06T08:00:00Z'));
 try{
   await page.goto(base);await page.locator('[data-action="catalog"]').click();
   await page.locator('[data-source]').filter({hasText:'1 курс БВО'}).click();
-  await page.locator('#dialog').getByRole('button',{name:'Просмотреть изменения'}).click();await page.locator('#apply-import').click();
+  await page.locator('#dialog').getByRole('button',{name:'Просмотреть изменения'}).click();await page.locator('#apply-import').click();await page.waitForTimeout(100);if(await page.locator('#setup-form').count())await page.locator('#setup-form .primary').click();
   await page.locator('[data-action="add-task"]').first().click();await page.locator('[name="title"]').fill('Личная задача при обновлении');await page.getByRole('button',{name:'Добавить задачу',exact:true}).click();
   const updated=await page.evaluate(async()=>{
     const catalog=await(await fetch('./data/catalog.json')).json(),source=catalog.sources.find(s=>s.program==='БВО'&&s.course===1);
@@ -27,7 +27,7 @@ try{
   const oldHash=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).schedule.importMeta.hash);
   assert.notEqual(oldHash,updated.catalog.sources.find(s=>s.program==='БВО').sha256,'Detection must not auto-apply');
   await page.locator('[data-action="review-update"]').click();await page.locator('#dialog').getByRole('button',{name:'Просмотреть изменения'}).click();
-  assert.equal(await page.locator('.diff-tag').count(),3);await page.locator('#apply-import').click();
+  assert.equal(await page.locator('.diff-tag').count(),3);await page.locator('#apply-import').click();await page.waitForTimeout(100);if(await page.locator('#setup-form').count())await page.locator('#setup-form .primary').click();
   const state=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')));assert.equal(state.tasks.filter(t=>t.title==='Личная задача при обновлении').length,1);
   assert.equal(state.schedule.importMeta.hash,updated.catalog.sources.find(s=>s.program==='БВО').sha256);
   assert.deepEqual(errors,[]);console.log('PASS: actual XLSX modified in three cells → 3 changes → explicit review/apply → personal task survives.');

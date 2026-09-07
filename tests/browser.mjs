@@ -27,7 +27,7 @@ try{
   assert.equal(byRange('C10:K11').kind,'lecture');
   assert.equal(byRange('C12:C13').kind,'seminar');
   assert.equal(byRange('C47:C49').kind,'lab');
-  assert.equal(byRange('C4:C5').kind,'practice');
+  assert.equal(byRange('C4:C5').kind,'class');
   assert.equal(byRange('C6:C7').kind,'sport');
   assert.equal(parsed.result.series.find(s=>s.source.ranges[0].startsWith('CK10:')).kind,'practice');
   assert.equal(parsed.result.series.find(s=>s.source.ranges[0].startsWith('AH8:')).kind,'seminar');
@@ -39,7 +39,8 @@ try{
   await page.locator('[data-source]').filter({hasText:'1 курс БВО'}).click();
   await page.waitForSelector('#import-form');
   await page.getByRole('button',{name:'Просмотреть изменения'}).click();
-  await page.getByRole('button',{name:'Применить расписание',exact:true}).click();
+  await page.getByRole('button',{name:'Применить расписание',exact:true}).click();await page.waitForTimeout(100);
+  if(await page.locator('#setup-form').count())await page.locator('#setup-form .primary').click();
   assert.equal(await page.locator('[data-action="sample-tasks"]').count(),0);
   await page.locator('[data-action="add-task"]').first().click();
   await page.locator('[name="title"]').fill('Решить задачи по механике');
@@ -67,7 +68,8 @@ try{
   await page.locator('[data-source]').filter({hasText:'1 курс БВО'}).click();
   await page.getByRole('button',{name:'Просмотреть изменения'}).click();
   assert.match(await page.locator('.diff-list').innerText(),/не изменилось/);
-  await page.getByRole('button',{name:'Применить расписание',exact:true}).click();
+  await page.getByRole('button',{name:'Применить расписание',exact:true}).click();await page.waitForTimeout(100);
+  if(await page.locator('#setup-form').count())await page.locator('#setup-form .primary').click();
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).sessions.length),1);
   await page.setViewportSize({width:390,height:844});await page.locator('#day-picker').fill('2026-09-07');
   await page.screenshot({path:'artifacts/today-mobile.png',fullPage:true});
@@ -94,7 +96,7 @@ try{
   await page.clock.setFixedTime(new Date('2026-09-08T18:00:00Z'));
   await page.reload();await page.waitForSelector('.now-panel');
   const generated=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).tasks.filter(t=>t.origin));
-  for(const kind of ['lecture','seminar','practice'])assert.ok(generated.some(t=>t.origin.kind===kind),kind+' follow-up');
+  for(const kind of ['lecture','seminar'])assert.ok(generated.some(t=>t.origin.kind===kind),kind+' follow-up');
   assert.ok(generated.every(t=>t.origin.date<='2026-09-08'&&t.occurrenceId&&t.status==='todo'));
   await page.reload();await page.waitForSelector('.now-panel');
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).tasks.filter(t=>t.origin).length),generated.length);

@@ -42,8 +42,21 @@ export function finishSession(state,id) {
 }
 export function completeTask(state,id) {
   const t=state.tasks.find(t=>t.id===id);if(!t)return;
+  if(t.status==='done')return;
+  t.completionUndo={remainingMinutes:t.remainingMinutes,sessionIds:state.sessions.filter(s=>s.taskId===id&&s.status==='planned').map(s=>s.id)};
   t.status='done';t.remainingMinutes=0;
   state.sessions.filter(s=>s.taskId===id && s.status==='planned').forEach(s=>s.status='skipped');
+}
+export function reopenTask(state,id){
+  const t=state.tasks.find(t=>t.id===id);if(!t||t.status!=='done')return;
+  t.status='todo';t.remainingMinutes=t.completionUndo?.remainingMinutes||t.estimatedMinutes;
+  // Restoring obsolete time reservations could introduce overlaps. Let the student replan.
+  delete t.completionUndo;
+}
+// Explicit, reviewable catch-up is restricted to seven days and never advances the live cursor.
+export function previousWeekTasks(state,now){
+  const copy=structuredClone(state);copy.tasks=[];copy.generatedThrough={date:addDays(now.date,-7),minute:0};
+  catchUp(copy,now);return copy.tasks.slice(0,30);
 }
 // Cursor is persisted even when no rule fires. Enabling a rule is prospective.
 export function catchUp(state,now) {
