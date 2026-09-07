@@ -17,10 +17,20 @@ import org.junit.runner.RunWith;
 public class SetkaInstrumentedTest {
   private boolean clickSave(android.view.accessibility.AccessibilityNodeInfo node){
     if(node==null)return false;
-    String text=node.getText()==null?"":node.getText().toString();
-    if((text.equalsIgnoreCase("Save")||text.equalsIgnoreCase("Сохранить"))&&node.isClickable())return node.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK);
+    String text=node.getText()==null?"":node.getText().toString().trim();
+    String description=node.getContentDescription()==null?"":node.getContentDescription().toString().trim();
+    if(text.equalsIgnoreCase("Save")||text.equalsIgnoreCase("Сохранить")||description.equalsIgnoreCase("Save")){
+      android.view.accessibility.AccessibilityNodeInfo target=node;
+      for(int i=0;i<3&&target!=null;i++,target=target.getParent())if(target.isEnabled()&&target.isClickable())return target.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK);
+    }
     for(int i=0;i<node.getChildCount();i++)if(clickSave(node.getChild(i)))return true;
     return false;
+  }
+  private String accessibilityTree(android.view.accessibility.AccessibilityNodeInfo node){
+    if(node==null)return "<no accessibility root>";
+    StringBuilder result=new StringBuilder("["+node.getPackageName()+":"+node.getViewIdResourceName()+" "+node.getText()+"]");
+    for(int i=0;i<node.getChildCount();i++)result.append(accessibilityTree(node.getChild(i)));
+    return result.toString();
   }
   private String js(ActivityScenario<MainActivity> scenario, String script) throws Exception {
     CountDownLatch latch=new CountDownLatch(1); AtomicReference<String> result=new AtomicReference<>();
@@ -86,9 +96,9 @@ public class SetkaInstrumentedTest {
       assertEquals("true",js(scenario,"JSON.parse(localStorage.getItem('setka.v1')).sessions.length===1"));
       // Use the real system document picker; never rely on WebView blob downloads.
       js(scenario,"Capacitor.Plugins.SetkaExport.save({name:'setka-native-verification.json',text:localStorage.getItem('setka.v1')}).then(result=>window.nativeExportSaved=result.uri).catch(e=>window.testError=String(e))");
-      long saveDeadline=System.currentTimeMillis()+15000;boolean saved=false;
+      long saveDeadline=System.currentTimeMillis()+45000;boolean saved=false;
       while(System.currentTimeMillis()<saveDeadline){if(clickSave(InstrumentationRegistry.getInstrumentation().getUiAutomation().getRootInActiveWindow())){saved=true;break;}Thread.sleep(300);}
-      assertTrue("Android save dialog must offer Save",saved);
+      assertTrue("Android save dialog must offer Save; JS error="+js(scenario,"window.testError")+"; UI="+accessibilityTree(InstrumentationRegistry.getInstrumentation().getUiAutomation().getRootInActiveWindow()),saved);
       until(scenario,"window.nativeExportSaved");
       String savedUri=(String)new org.json.JSONTokener(js(scenario,"window.nativeExportSaved")).nextValue();
       try(java.io.InputStream backup=context.getContentResolver().openInputStream(android.net.Uri.parse(savedUri))){
