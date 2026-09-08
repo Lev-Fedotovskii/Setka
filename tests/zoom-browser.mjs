@@ -26,5 +26,9 @@ try{
   assert.equal(await page.evaluate(()=>visualViewport.scale),1);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  }
  await page.screenshot({path:'artifacts/032-collapsed.png'});await page.locator('[data-action=expand-week]').click();await page.setViewportSize({width:844,height:390});await page.waitForTimeout(100);await page.screenshot({path:'artifacts/032-fit.png'});
+ await context.addInitScript(()=>{window.print=()=>{parent.__printedGrid=document.querySelectorAll('.grid-lesson').length;parent.__printBodyClass=document.body.className;dispatchEvent(new Event('afterprint'));};});
+ await page.evaluate(()=>{window.__orientationRestored=0;screen.orientation.lock=async()=>{window.__orientationRestored++;};});
+ await page.locator('[data-action=print-week]').click();await page.waitForFunction(()=>window.__orientationRestored>0);
+ assert.ok(await page.evaluate(()=>window.__printedGrid>0));assert.equal(await page.evaluate(()=>window.__printBodyClass),'');
  console.log('PASS: repeated expansion/collapse restores 65%, initial grid fits both axes, real two-touch pinch changes only timetable zoom, continuous slider, no page zoom.');
 }finally{await browser.close();}

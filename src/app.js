@@ -1,3 +1,4 @@
+import {printWeek} from './print-week.js';
 import {mountWeekViewport} from './week-viewport.js';
 import {reviewRecords,unresolvedRecords,validateSelection} from './import/review.js';
 import {exportJson} from './platform/export.js';
@@ -106,7 +107,7 @@ document.addEventListener('click',async event=>{
   const a=b.dataset.action,id=b.dataset.id;
   if(a==='close')dialog.close();
   if(a==='expand-week')await expandWeek();
-  if(a==='print-week'){if(native)await window.Capacitor.Plugins.SetkaExport.printWeek();else window.print();}
+  if(a==='print-week'){if(native)await window.Capacitor.Plugins.SetkaExport.printWeek();else if(expandedMobile||matchMedia('(max-width:650px), (pointer:coarse)').matches){printReturning=true;await printWeek(document.querySelector('.week-grid'),restoreWeekOrientation);}else window.print();}
   if(a==='catalog')await showCatalog();
   if(a==='check-source')await checkSource(true);
   if(a==='review-update'&&updateCandidate){candidate=updateCandidate;reviewChoices=new Map();reviewImport();}
@@ -262,3 +263,12 @@ async function expandWeek(){
  if(expandedMobile){try{await document.documentElement.requestFullscreen();await screen.orientation.lock('landscape');}catch{toast('Если браузер не повернул экран, поверните телефон горизонтально.');}}
  else {screen.orientation?.unlock?.();if(document.fullscreenElement)await document.exitFullscreen();}
 }
+
+let printReturning=false;
+async function restoreWeekOrientation(){
+ if(!printReturning||!weekExpanded||!expandedMobile||native)return;
+ try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();if(!weekExpanded||!expandedMobile)return;await screen.orientation.lock('landscape');printReturning=false;}catch{ /* Browser may require the next user gesture to re-enter fullscreen. */ }
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)restoreWeekOrientation();});
+window.addEventListener('focus',restoreWeekOrientation);
+document.addEventListener('pointerdown',()=>{if(printReturning)restoreWeekOrientation();},{capture:true});
