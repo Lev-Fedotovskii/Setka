@@ -67,8 +67,8 @@ jobs:
           disable-animations: true
           script: |
             cd android && ./gradlew :app:assembleReleaseAndroidTest -PtestBuildType=release --no-daemon
-            curl --fail -L https://github.com/Lev-Fedotovskii/Setka/releases/download/v0.3.0/Setka-0.3.0.apk -o /tmp/setka-0.3.apk
-            echo '10da5d642fa2b5e557634f3be165997b2a5b0fed996b23d3e5db50d5c8953e94  /tmp/setka-0.3.apk' | sha256sum --check
+            curl --fail -L https://github.com/Lev-Fedotovskii/Setka/releases/download/v0.3.1/Setka-0.3.1.apk -o /tmp/setka-0.3.apk
+            echo '8aa37cddc616ad3a3e2fd8aaf364819e440843a260bb5a855859e4d3176bccbb  /tmp/setka-0.3.apk' | sha256sum --check
             adb install /tmp/setka-0.3.apk
             adb install android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
             adb shell am instrument -w -e class 'io.setka.app.SetkaInstrumentedTest#seedPreviousStable' io.setka.app.release.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/setka-upgrade-seed.txt

@@ -135,9 +135,16 @@ public class SetkaInstrumentedTest {
       until(scenario,"document.querySelector('#setup-form')");
       js(scenario,"document.querySelector('#setup-form').requestSubmit()");
       js(scenario,"document.querySelector('[data-nav=week]').click()");until(scenario,"document.querySelector('.week-grid')");
-      js(scenario,"document.querySelector('[data-action=expand-week]').click()");until(scenario,"innerWidth>innerHeight&&document.body.classList.contains('mobile-expanded')");
-      screenshot("expanded-week");
-      js(scenario,"document.querySelector('[data-action=expand-week]').click()");until(scenario,"!document.body.classList.contains('mobile-expanded')");
+      String initialScale=js(scenario,"visualViewport.scale");
+      for(int cycle=0;cycle<3;cycle++){
+        js(scenario,"document.querySelector('[data-action=expand-week]').click()");until(scenario,"innerWidth>innerHeight&&document.querySelector('#expanded-week-zoom')");
+        until(scenario,"(()=>{const g=document.querySelector('.week-grid').getBoundingClientRect(),h=document.querySelector('.grid-scroll').getBoundingClientRect();return g.width<=h.width+1&&g.height<=h.height+1})()");
+        if(cycle==0)screenshot("expanded-week");
+        js(scenario,"(()=>{const slider=document.querySelector('#expanded-week-zoom');slider.value='1.5';slider.dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('[data-action=expand-week]').click()})()");
+        until(scenario,"!document.body.classList.contains('mobile-expanded')&&innerHeight>innerWidth");
+        assertEquals("\"0.65\"",js(scenario,"document.querySelector('#week-zoom').value"));
+        assertEquals(initialScale,js(scenario,"visualViewport.scale"));
+      }
       js(scenario,"document.querySelector('[data-nav=tasks]').click();document.querySelector('[data-action=add-task]').click()");
       until(scenario,"document.querySelector('#task-form')");
       js(scenario,"document.querySelector('#task-form [name=title]').value='Android verification task';document.querySelector('#task-form').requestSubmit()");

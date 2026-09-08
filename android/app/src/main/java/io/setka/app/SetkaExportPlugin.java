@@ -12,12 +12,14 @@ import java.nio.charset.StandardCharsets;
 @CapacitorPlugin(name="SetkaExport")
 public class SetkaExportPlugin extends Plugin {
   private int previousOrientation=android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
+  private boolean weekExpanded=false;
   @PluginMethod public void weekOrientation(PluginCall call) {
     getActivity().runOnUiThread(()->{
       if(Boolean.TRUE.equals(call.getBoolean("expanded",false))){
-        previousOrientation=getActivity().getRequestedOrientation();
+        if(!weekExpanded)previousOrientation=getActivity().getRequestedOrientation();
+        weekExpanded=true;
         getActivity().setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-      }else getActivity().setRequestedOrientation(previousOrientation);
+      }else if(weekExpanded){weekExpanded=false;getActivity().setRequestedOrientation(previousOrientation);}
       call.resolve();
     });
   }

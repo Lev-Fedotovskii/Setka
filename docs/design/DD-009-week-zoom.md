@@ -1,0 +1,7 @@
+# DD-009 — 0.3.2 mobile Week zoom
+
+Expanded mobile Week now has its own contained viewport. A wide, CSS-zoomed grid must not enlarge the document layout viewport: WebView can otherwise rescale the page across rotation, producing cumulative apparent zoom. Normal Week's zoom is captured on entry and restored on collapse; expanded zoom is independent and starts fitted to both available axes on each entry. The grid's aspect ratio uses the available landscape space. No schedule or storage migration is involved.
+
+The expanded mobile select is replaced by a continuous range control with a percentage readout. Touch pointer handling implements two-finger scaling and one-finger panning only inside the expanded timetable. Browser/document zoom remains independent outside that area. Tap-to-open lesson details remains available. Layout resizes refit until the user adjusts zoom; ordinary application rerenders preserve that adjustment. Android orientation requests are idempotent and restore the saved mode.
+
+Regression coverage includes three expand/zoom/collapse cycles, normal 65% restoration, actual browser two-touch input, unchanged visual viewport scale, fit bounds in both axes, and existing one-page printing. Android release instrumentation repeats the cycles in landscape/portrait on API 35/36. The previous published 0.3.1 APK is the update-retention baseline; stable identity/signature remain unchanged and versionCode is 5. No physical-device testing is claimed by CI.
