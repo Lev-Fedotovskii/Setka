@@ -96,7 +96,7 @@ function semester(){const t=state.schedule?.term||DEFAULT_TERM;let dates=[];for(
 document.addEventListener('click',async event=>{
   const b=event.target.closest('button,a[data-action]');if(!b)return;
   if(b.hasAttribute('data-due')){dialog.querySelector('[name=due]').value=b.dataset.due;return;}
-  if(b.hasAttribute('data-week-jump')){const sc=document.querySelector('.grid-scroll'),cell=document.querySelectorAll('.grid-day')[Number(b.dataset.weekJump)];sc.scrollTo({left:cell.offsetLeft-document.querySelector('.week-grid').offsetLeft-65,behavior:'smooth'});return;}
+  if(b.hasAttribute('data-week-jump')){const sc=document.querySelector('.grid-scroll'),cell=document.querySelectorAll('.grid-day')[Number(b.dataset.weekJump)];sc.scrollTo({left:sc.scrollLeft+cell.getBoundingClientRect().left-sc.getBoundingClientRect().left-document.querySelector('.grid-slot').getBoundingClientRect().width,behavior:'smooth'});return;}
   if(b.dataset.nav){view=b.dataset.nav;render();window.scrollTo(0,0);return;}
   if(b.dataset.day){if(b.classList.contains('grid-day')&&matchMedia('(pointer:coarse), (max-width:650px)').matches)return;date=b.dataset.day;view='today';dialog.close();render();return;}
   if(b.dataset.week){weekMode=b.dataset.week;render();return;}
