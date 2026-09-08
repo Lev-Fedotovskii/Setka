@@ -112,3 +112,9 @@ dialog .sticky-button{margin-top:12px;z-index:2}dialog .dialog-head{position:sti
  .mobile-expanded .week-controls button{white-space:nowrap;padding:8px;font-size:12px}
 }
 @media screen{.mobile-expanded .week-grid{grid-template-rows:40px repeat(7,minmax(70px,auto))}}
+@media screen{
+ body.mobile-expanded,.mobile-expanded .shell{height:var(--visual-height,100vh)}
+ .week-zoom-stage{position:relative;min-width:100%;min-height:100%}
+ .week-zoom-stage>.week-grid{top:0;left:0}
+}
+@media print{.week-zoom-stage{position:static!important;width:auto!important;height:auto!important;min-width:0!important;min-height:0!important}.week-grid{transform:none!important;position:static!important}}

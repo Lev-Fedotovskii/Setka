@@ -1,6 +1,9 @@
 // Keep timetable scaling inside its viewport; never scale the document/WebView.
 export function mountWeekViewport(host, slider, output, saved={}) {
   const grid=host.querySelector('.week-grid');
+  const stage=document.createElement('div');stage.className='week-zoom-stage';
+  host.append(stage);stage.append(grid);
+  grid.style.zoom='1';grid.style.position='absolute';grid.style.transformOrigin='0 0';
   let scale=1,fit=saved.fit??true,gesture=null;
   const points=new Map();
   const distance=()=>{const [a,b]=[...points.values()];return Math.hypot(a.x-b.x,a.y-b.y);};
@@ -8,12 +11,15 @@ export function mountWeekViewport(host, slider, output, saved={}) {
   function setScale(value,anchor={x:host.clientWidth/2,y:host.clientHeight/2}) {
     const next=Math.max(0.05,Math.min(2,value));
     const x=(host.scrollLeft+anchor.x)/scale,y=(host.scrollTop+anchor.y)/scale;
-    scale=next;grid.style.zoom=String(scale);
+    scale=next;grid.style.transform=`scale(${scale})`;
+    stage.style.width=Math.ceil(grid.offsetWidth*scale)+'px';stage.style.height=Math.ceil(grid.offsetHeight*scale)+'px';
     host.scrollLeft=x*scale-anchor.x;host.scrollTop=y*scale-anchor.y;
     slider.value=String(scale);output.value=Math.round(scale*100)+'%';
   }
   function fitAll(){
+    if(host.clientWidth<2||host.clientHeight<2)return;
     grid.style.zoom='1';
+    grid.style.transform='none';
     grid.style.width='850px';
     // Match the available landscape aspect ratio instead of leaving a narrow
     // miniature timetable at the left of an otherwise empty screen.

@@ -20,7 +20,7 @@ try{
    assert.ok(Number(await page.locator('#expanded-week-zoom').inputValue())>before*1.5);assert.equal(await page.evaluate(()=>visualViewport.scale),1);
   }
   await page.locator('#expanded-week-zoom').fill('1.5');await page.locator('#expanded-week-zoom').dispatchEvent('input');
-  assert.equal(await page.locator('.week-grid').evaluate(e=>e.style.zoom),'1.5');
+  assert.equal(await page.locator('.week-grid').evaluate(e=>e.style.transform),'scale(1.5)');
   await page.locator('[data-action=expand-week]').click();await page.setViewportSize({width:390,height:844});
   assert.equal(await page.locator('#week-zoom').inputValue(),'0.65');assert.equal(await page.locator('.week-grid').evaluate(e=>e.style.zoom),'0.65');
   assert.equal(await page.evaluate(()=>visualViewport.scale),1);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
