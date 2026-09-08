@@ -53,14 +53,14 @@ try{
   const plannedTitle=await page.locator('.plan-title').textContent();
   await page.getByRole('button',{name:'Подтвердить время'}).click();
   await page.waitForSelector('.event-card.work');
-  const persisted=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')));
+  const persisted=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')));
   assert.equal(persisted.sessions.length,1);assert.ok(persisted.tasks.some(t=>t.title===plannedTitle&&t.status==='todo'));
-  await page.evaluate(async()=>{const {validateBackup}=await import('./src/storage.js');validateBackup(JSON.parse(localStorage.getItem('setka.v1')));});
+  await page.evaluate(async()=>{const {validateBackup}=await import('./src/storage.js');validateBackup(JSON.parse(localStorage.getItem('setka.unstable.v1')));});
   await page.reload();await page.waitForSelector('.now-panel');
-  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).sessions.length),1);
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')).sessions.length),1);
   await page.locator('#day-picker').fill('2026-09-07');
   await page.locator('.event-card.work').click();await page.getByRole('button',{name:'Сессия выполнена'}).click();
-  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).sessions[0].status),'done');
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')).sessions[0].status),'done');
   await page.locator('.sidebar [data-nav="week"]').click();
   await page.waitForSelector('.week-grid');await page.screenshot({path:'artifacts/week-desktop.png',fullPage:true});
   await page.locator('.sidebar [data-nav="more"]').click();
@@ -70,7 +70,7 @@ try{
   assert.match(await page.locator('.diff-list').innerText(),/не изменилось/);
   await page.getByRole('button',{name:'Применить расписание',exact:true}).click();await page.waitForTimeout(100);
   if(await page.locator('#setup-form').count())await page.locator('#setup-form .primary').click();
-  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).sessions.length),1);
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')).sessions.length),1);
   await page.setViewportSize({width:390,height:844});await page.locator('#day-picker').fill('2026-09-07');
   await page.screenshot({path:'artifacts/today-mobile.png',fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Today must not horizontally scroll');
@@ -95,18 +95,18 @@ try{
   // Reopening after actual fixture lessons ended must catch up, once, without future tasks.
   await page.clock.setFixedTime(new Date('2026-09-08T18:00:00Z'));
   await page.reload();await page.waitForSelector('.now-panel');
-  const generated=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).tasks.filter(t=>t.origin));
+  const generated=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')).tasks.filter(t=>t.origin));
   for(const kind of ['lecture','seminar'])assert.ok(generated.some(t=>t.origin.kind===kind),kind+' follow-up');
   assert.ok(generated.every(t=>t.origin.date<='2026-09-08'&&t.occurrenceId&&t.status==='todo'));
   await page.reload();await page.waitForSelector('.now-panel');
-  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).tasks.filter(t=>t.origin).length),generated.length);
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')).tasks.filter(t=>t.origin).length),generated.length);
   await page.locator('.mobile-nav [data-nav=tasks]').click();
   await page.locator(`[data-action=manual-plan][data-id="${generated[0].id}"]`).click();
   await page.locator('#plan-form [name=date]').fill('2026-09-13');
   await page.locator('#plan-form [name=start]').fill('12:00');
   await page.locator('#plan-form [name=duration]').fill('30');
   await page.getByRole('button',{name:'Подтвердить время'}).click();
-  assert.ok(await page.evaluate(id=>JSON.parse(localStorage.getItem('setka.v1')).sessions.some(s=>s.taskId===id&&s.status==='planned'),generated[0].id));
+  assert.ok(await page.evaluate(id=>JSON.parse(localStorage.getItem('setka.unstable.v1')).sessions.some(s=>s.taskId===id&&s.status==='planned'),generated[0].id));
   assert.deepEqual(errors,[]);
   console.log('PASS: real XLSX, import review, plan/complete/persist, zero-diff re-import, desktop/mobile, offline reload and editing, no page errors.');
 }finally{await browser.close();}

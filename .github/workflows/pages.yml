@@ -1,4 +1,4 @@
-name: Test, check MIPT, deploy PWA
+name: Test and deploy isolated PWA channels
 on:
   push:
     branches: [main]
@@ -9,21 +9,33 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: pages-${{ github.ref }}
+  group: pages-channels
   cancel-in-progress: false
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Checkout approved Stable application (promotion requires owner approval)
+        uses: actions/checkout@v4
+        with:
+          ref: 2bd0b444ab1dc6c0e3abd244b29a68dc338d0593
+          path: _stable
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm ci --prefix _stable
       - name: Check official MIPT sources
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        working-directory: _stable
         run: npm run sources:refresh
+      - name: Build frozen Stable with fresh official data
+        run: |
+          cp -a _stable/data/. data/
+          cd _stable
+          npm run build
       - run: npm test
       - run: npm run build
       - run: npx playwright install --with-deps chromium
@@ -43,17 +55,24 @@ jobs:
           node tests/alpha-browser.mjs
           node tests/patch-browser.mjs
           node tests/zoom-browser.mjs
+      - name: Assemble and verify channel isolation in one browser profile
+        env:
+          TEST_URL: http://localhost:4175/Setka/
+          BROWSER_CHANNEL: chromium
+        run: |
+          node scripts/assemble-channels.mjs
+          node tests/channels-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: browser-evidence
           path: artifacts/*.png
       - uses: actions/upload-pages-artifact@v3
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         with:
           path: dist
   deploy:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     permissions:

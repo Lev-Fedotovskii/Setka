@@ -24,11 +24,11 @@ try{
   await page.route('**/data/workbooks/test-update.xlsx',route=>route.fulfill({body:Buffer.from(updated.bytes),contentType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   await page.locator('.sidebar [data-nav="more"]').click();await page.locator('[data-action="check-source"]').click();
   await page.locator('[data-action="review-update"]').waitFor();assert.match(await page.locator('.source-status').innerText(),/3 изменений/);
-  const oldHash=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).schedule.importMeta.hash);
+  const oldHash=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')).schedule.importMeta.hash);
   assert.notEqual(oldHash,updated.catalog.sources.find(s=>s.program==='БВО').sha256,'Detection must not auto-apply');
   await page.locator('[data-action="review-update"]').click();await page.locator('#dialog').getByRole('button',{name:'Просмотреть изменения'}).click();
   assert.equal(await page.locator('.diff-tag').count(),3);await page.locator('#apply-import').click();await page.waitForTimeout(100);if(await page.locator('#setup-form').count())await page.locator('#setup-form .primary').click();
-  const state=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')));assert.equal(state.tasks.filter(t=>t.title==='Личная задача при обновлении').length,1);
+  const state=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')));assert.equal(state.tasks.filter(t=>t.title==='Личная задача при обновлении').length,1);
   assert.equal(state.schedule.importMeta.hash,updated.catalog.sources.find(s=>s.program==='БВО').sha256);
   assert.deepEqual(errors,[]);console.log('PASS: actual XLSX modified in three cells → 3 changes → explicit review/apply → personal task survives.');
 }finally{await browser.close();}

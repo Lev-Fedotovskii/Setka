@@ -12,11 +12,11 @@ try {
   const cdp=await context.newCDPSession(page);
   await cdp.send('Browser.setPermission',{permission:{name:'notifications'},setting:'denied',origin:new URL(base).origin});
   await page.click('[data-nav=more]');await page.click('[data-action=notification-permission]');
-  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).notifications.enabled),false);
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')).notifications.enabled),false);
   await context.grantPermissions(['notifications']);
   await page.click('[data-action=notification-permission]');
-  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('setka.v1')).notifications.enabled);
-  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).notifications.enabled),true);
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')).notifications.enabled);
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')).notifications.enabled),true);
   const fixture=await page.evaluate(async()=>{
     const {newState}=await import('./src/storage.js');const s=newState('2026-09-06');s.notifications.enabled=true;
     s.tasks=[{id:'notification-test',title:'Notification verification',estimatedMinutes:30,remainingMinutes:30,splittable:true,status:'todo',priority:3}];
@@ -24,12 +24,12 @@ try {
     await navigator.serviceWorker.ready;return s;
   });
   // Seed before the application loads, so its live state cannot overwrite the fixture.
-  await page.addInitScript(s=>{if(!sessionStorage.getItem('notification-fixture')){localStorage.setItem('setka.v1',JSON.stringify(s));sessionStorage.setItem('notification-fixture','1');}},fixture);
+  await page.addInitScript(s=>{if(!sessionStorage.getItem('notification-fixture')){localStorage.setItem('setka.unstable.v1',JSON.stringify(s));sessionStorage.setItem('notification-fixture','1');}},fixture);
   await page.reload();await page.waitForSelector('.now-panel');
   await page.waitForTimeout(300);await page.clock.runFor(2500);
-  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('setka.notifications.delivered')||'[]').includes('session:test-session'));
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('setka.unstable.notifications.delivered')||'[]').includes('session:test-session'));
   assert.equal(await page.evaluate(async()=>{const reg=await navigator.serviceWorker.ready;const ns=await reg.getNotifications();const count=ns.filter(n=>n.tag==='session:test-session').length;ns.forEach(n=>n.close());return count;}),1);
   await page.reload();await page.waitForSelector('.now-panel');await page.clock.runFor(2000);
-  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.notifications.delivered')).filter(k=>k==='session:test-session').length),1);
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.notifications.delivered')).filter(k=>k==='session:test-session').length),1);
   console.log('Browser notification permission denial/grant, real service-worker display, and deduplication passed.');
 } finally {await browser.close();}

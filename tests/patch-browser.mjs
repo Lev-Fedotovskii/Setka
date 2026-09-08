@@ -20,7 +20,7 @@ try{
  await page.locator('#task-form .primary').click();
  await page.locator('.mobile-nav [data-nav=more]').click();await page.locator('[data-action=catalog]').click();await page.locator('[data-source]').filter({hasText:'1 курс БВО'}).click();
  assert.equal(await page.locator('#import-form [name=record]').count(),await page.locator('#import-form [name=record]:checked').count());
- await page.locator('#import-form .sticky-button').click();await page.locator('#apply-import').click();assert.ok(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).tasks.some(t=>t.title==='Моя задача 031')));
+ await page.locator('#import-form .sticky-button').click();await page.locator('#apply-import').click();assert.ok(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')).tasks.some(t=>t.title==='Моя задача 031')));
  await page.locator('.mobile-nav [data-nav=tasks]').click();await page.locator('#task-origin-filter').selectOption('mine');await page.locator('.task-title').filter({hasText:'Моя задача 031'}).click();assert.equal(await page.locator('#task-form').count(),0);await page.locator('[data-action=edit-task]').click();await page.locator('#task-form [name=minutes]').fill('90');await page.locator('#task-form .primary').click();
  await page.locator('.mobile-nav [data-nav=week]').click();await page.locator('.grid-day').first().click();assert.equal(await page.locator('h1').innerText(),'Неделя');await page.locator('[data-action=expand-week]').click();await page.locator('#expanded-week-zoom').waitFor();
  assert.ok(await page.locator('.week-grid').evaluate(e=>e.getBoundingClientRect().width<=e.parentElement.clientWidth+1));await page.screenshot({path:'artifacts/031-week-fit.png'});

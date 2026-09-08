@@ -1,4 +1,9 @@
 apply plugin: 'com.android.application'
+// Main is a development channel. Stable is built only from its pinned release commit.
+def unstableChannel = System.getenv('SETKA_CHANNEL') != 'stable'
+def releaseVersion = new groovy.json.JsonSlurper().parse(file('../../package.json')).version
+if (!unstableChannel && releaseVersion.contains('-')) throw new GradleException('Cannot build a pre-release as Stable')
+
 
 android {
     namespace = "io.setka.app"
@@ -8,8 +13,8 @@ android {
         applicationId "io.setka.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 5
-        versionName "0.3.2"
+        versionCode 6
+        versionName releaseVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -27,11 +32,17 @@ android {
             }
         }
     }
+    sourceSets {
+        if (unstableChannel) {
+            release.res.srcDirs += 'src/unstable/res'
+            debug.res.srcDirs += 'src/unstable/res'
+        }
+    }
     buildTypes {
         release {
             // The unrecoverable CI debug identity cannot update v0.2.0.
             // Side-by-side installation keeps that app and its personal data intact.
-            applicationIdSuffix '.release'
+            applicationIdSuffix unstableChannel ? '.unstable' : '.release'
             signingConfig signingConfigs.stableRelease
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

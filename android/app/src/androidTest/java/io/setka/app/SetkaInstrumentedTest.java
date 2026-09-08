@@ -15,6 +15,16 @@ import org.junit.runner.RunWith;
 /** Runs only in the isolated Android test application/device, never normal user storage. */
 @RunWith(AndroidJUnit4.class)
 public class SetkaInstrumentedTest {
+  @Test public void unstableStartsIsolated() throws Exception {
+    Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
+    assertEquals("io.setka.app.unstable",context.getPackageName());
+    assertEquals("Setka Unstable",context.getApplicationInfo().loadLabel(context.getPackageManager()).toString());
+    try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
+      until(scenario,"document.querySelector('.now-panel')");
+      assertEquals("true",js(scenario,"!localStorage.getItem('setka.'+'v1')"));
+      assertEquals("true",js(scenario,"!JSON.parse(localStorage.getItem('setka.v1')||'{\"tasks\":[]}').tasks.some(t=>t.title==='Stable upgrade sentinel')"));
+    }
+  }
   @Test public void seedPreviousStable() throws Exception {
     try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
       until(scenario,"document.querySelector('.now-panel')");
@@ -83,8 +93,9 @@ public class SetkaInstrumentedTest {
     return result.toString();
   }
   private String js(ActivityScenario<MainActivity> scenario, String script) throws Exception {
+    final String channelScript=InstrumentationRegistry.getInstrumentation().getTargetContext().getPackageName().endsWith(".unstable")?script.replace("setka.v1","setka.unstable.v1"):script;
     CountDownLatch latch=new CountDownLatch(1); AtomicReference<String> result=new AtomicReference<>();
-    scenario.onActivity(activity->activity.getBridge().getWebView().evaluateJavascript(script,value->{result.set(value);latch.countDown();}));
+    scenario.onActivity(activity->activity.getBridge().getWebView().evaluateJavascript(channelScript,value->{result.set(value);latch.countDown();}));
     assertTrue("JavaScript evaluation timed out",latch.await(15,TimeUnit.SECONDS));return result.get();
   }
   private void until(ActivityScenario<MainActivity> scenario,String expression) throws Exception {
@@ -106,7 +117,7 @@ public class SetkaInstrumentedTest {
   @Test public void localImportPlanningPersistenceAndBackgroundNotification() throws Exception {
     Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
     String packageId=context.getPackageName();
-    assertTrue(packageId.equals("io.setka.app")||packageId.equals("io.setka.app.release"));
+    assertTrue(packageId.equals("io.setka.app")||packageId.equals("io.setka.app.release")||packageId.equals("io.setka.app.unstable"));
     shell("pm grant "+packageId+" android.permission.POST_NOTIFICATIONS");
     shell("appops set "+packageId+" SCHEDULE_EXACT_ALARM allow");
     try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){

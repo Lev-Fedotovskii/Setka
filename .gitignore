@@ -8,6 +8,9 @@ artifacts/
 .local/
 dist/
 android/.gradle/
+android/.kotlin/
+_stable/
+.channel-stage/
 android/local.properties
 android/**/build/
 *.keystore

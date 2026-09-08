@@ -3,7 +3,8 @@ import {DEFAULT_NOTIFICATIONS} from './domain/notifications.js';
 import {validDate,minute} from './domain/dates.js';
 import {semantics} from './import/mipt.js';
 import {classifyKind} from './import/kinds.js';
-export const STORAGE_KEY='setka.v1';
+import {storageKey} from './channel.js';
+export const STORAGE_KEY=storageKey('v1');
 export function newState(date) {
   return {version:1,schedule:null,groupId:'Б01-601',tasks:[],sessions:[],events:[],overrides:{},generatedKeys:[],generatedThrough:{date,minute:0},settings:{dayStart:540,dayEnd:1260},notifications:{...DEFAULT_NOTIFICATIONS},rules:structuredClone(DEFAULT_RULES)};
 }

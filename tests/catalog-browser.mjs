@@ -12,7 +12,7 @@ try{
   const open=async id=>{await page.locator('.sidebar [data-nav=more]').click();await page.locator('[data-action=catalog]').click();await page.locator(`[data-source="${id}"]`).click();await page.waitForSelector('#import-form');};
   for(const source of sources){
     await open(source.id);await apply();
-    const state=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')));
+    const state=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')));
     assert.equal(state.schedule.importMeta.source.id,source.id);assert.ok(state.schedule.series.length>0);
     assert.ok(state.tasks.some(t=>t.title==='Личная задача для всех источников'));
     await page.locator('.sidebar [data-nav=week]').click();await page.waitForSelector('.week-grid');
@@ -36,7 +36,7 @@ try{
   await page.route('**/data/workbooks/test-legacy-update.xls',r=>r.fulfill({body:Buffer.from(changed.bytes),contentType:'application/vnd.ms-excel'}));
   await page.locator('.sidebar [data-nav=more]').click();await page.locator('[data-action=check-source]').click();
   await page.locator('[data-action=review-update]').click();await apply();
-  const after=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')));
+  const after=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')));
   assert.equal(after.schedule.importMeta.hash,changed.hash);assert.ok(after.tasks.some(t=>t.title==='Личная задача для всех источников'));
   assert.deepEqual(errors,[]);console.log('All eight sources, local XLS import, source update/review and personal-data preservation passed.');
 }finally{await browser.close();}

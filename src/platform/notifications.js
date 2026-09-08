@@ -1,10 +1,11 @@
 import {Capacitor} from '@capacitor/core';
 import {LocalNotifications} from '@capacitor/local-notifications';
 import {App} from '@capacitor/app';
+import {storageKey} from '../channel.js';
 import {notificationIntents,notificationDiff,notificationId} from '../domain/notifications.js';
 export const native=Capacitor.isNativePlatform();
 let queue=Promise.resolve(),timers=[],status='Уведомления выключены';
-const deliveredKey='setka.notifications.delivered';
+const deliveredKey=storageKey('notifications.delivered');
 export const notificationStatus=()=>status;
 export async function permission(request=false){
   if(native){const p=await(request?LocalNotifications.requestPermissions():LocalNotifications.checkPermissions());return p.display;}
