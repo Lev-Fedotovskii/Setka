@@ -55,7 +55,7 @@ form .form-row>.checkbox-label{justify-content:flex-start}
 .task-notes{white-space:pre-wrap;overflow-wrap:anywhere}.task-origin-filter{display:flex;align-items:center;gap:12px;font-size:13px;margin-top:16px}
 .review-warning{border-left:3px solid #b27a25;padding-left:10px;background:#fff4df}.import-record{font-size:12px}.import-record input{margin-top:5px}.import-record>span{min-width:0}
 .week-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.week-controls label{font-size:13px;display:flex;align-items:center;gap:8px}
-.week-view main{max-width:none}.week-expanded .sidebar{width:150px;padding-left:14px;padding-right:14px}.week-expanded .shell{margin-left:150px}.week-expanded main{padding:20px}.week-expanded .workspace-label,.week-expanded .sidebar-bottom{display:none}
+.week-expanded .sidebar{width:150px;padding-left:14px;padding-right:14px}.week-expanded .shell{margin-left:150px}.week-expanded main{padding:20px}.week-expanded .workspace-label,.week-expanded .sidebar-bottom{display:none}
 .week-expanded .grid-lesson strong{font-size:13px}.mobile-day-hint{display:none}
 dialog .sticky-button{margin-top:12px;z-index:2}dialog .dialog-head{position:sticky;top:-22px;background:#f4f7fc;z-index:3;padding-top:8px;padding-bottom:8px}
 @media(pointer:coarse),(max-width:650px){.grid-day{cursor:default}.desktop-day-hint{display:none}.mobile-day-hint{display:inline}}
@@ -83,3 +83,19 @@ dialog .sticky-button{margin-top:12px;z-index:2}dialog .dialog-head{position:sti
 @media(max-height:500px) and (min-width:651px) and (max-width:1100px){
  .week-expanded .sidebar{width:110px;padding:12px 8px}.week-expanded .shell{margin-left:110px}.week-expanded .brand{font-size:20px}.week-expanded .nav-item{padding:10px 6px;gap:6px;font-size:12px}.week-expanded .topbar{height:40px;padding:0 12px}.week-expanded main{padding:8px 12px}.week-expanded .page-heading{margin-bottom:4px}.week-expanded .page-heading h1{font-size:18px}.week-expanded .date-control{max-width:none;flex-wrap:nowrap}.week-expanded .date-control input{width:125px}.week-expanded .week-toolbar{display:inline-flex;margin:0 8px 4px 0}.week-expanded .week-toolbar>.section-caption{display:none}.week-expanded .week-controls{display:inline-flex;margin:0 0 4px;gap:6px}.week-expanded .week-controls button,.week-expanded .segmented button{font-size:11px;padding:7px}.week-expanded .week-controls select{padding:4px;min-height:32px;max-width:110px}.week-expanded .grid-scroll{max-height:calc(100dvh - 158px)}
 }
+
+/* Expanded Week is the page itself, not a nested scrolling panel. */
+@media(min-width:651px){.mobile-brand{display:none}.topbar>.mobile-brand+span{border:0;padding-left:0}}
+.week-expanded .topbar,.week-expanded .page-heading,.week-expanded .week-toolbar,.week-expanded .week-jump,.week-expanded .page-footer,.week-expanded main>.section-caption,.week-expanded main>.notice{display:none!important}
+.week-expanded main{max-width:none;padding:8px!important;margin:0}.week-expanded .week-controls{display:flex;margin:0 0 8px;padding:0;min-height:44px}.week-expanded .grid-scroll{max-height:none!important;overflow:visible!important;margin:0!important;max-width:none!important}.week-expanded .week-grid{min-height:calc((100dvh - 70px) / 1);}.week-expanded .grid-slot,.week-expanded .grid-corner{position:static}
+.mobile-expanded .sidebar,.mobile-expanded .mobile-nav{display:none!important}.mobile-expanded .shell{margin:0!important}.mobile-expanded .week-controls{padding-top:env(safe-area-inset-top)}.mobile-expanded .week-grid{min-width:850px;grid-template-columns:65px repeat(6,minmax(125px,1fr))}
+@media print{
+ @page{size:A4 landscape;margin:0}
+ html,body,#app,.shell,.week-expanded .shell,main{min-height:0!important;height:auto!important;margin:0!important;padding:0!important;background:white!important}
+ main>:not(.grid-scroll),.week-expanded .page-heading,.week-expanded .page-heading h1,.week-expanded .page-heading p{display:none!important}
+ .grid-scroll,.week-expanded .grid-scroll{margin:6mm!important;width:285mm!important;max-height:none!important;overflow:visible!important;border:0!important}
+ .week-grid,.week-expanded .week-grid{width:285mm!important;height:196mm!important;min-height:0!important;min-width:0!important;zoom:1!important;grid-template-columns:40px repeat(6,minmax(0,1fr))!important;grid-template-rows:28px repeat(7,minmax(0,1fr))!important;break-inside:avoid;page-break-inside:avoid}
+ .grid-lesson{min-height:0;overflow:hidden}.grid-lesson strong{font-size:9px!important;line-height:1.2}.grid-lesson small{font-size:7px!important;line-height:1.15}
+}
+
+@media print{.week-expanded main{padding:0!important;margin:0!important}.week-grid,.week-expanded .week-grid{height:190mm!important}}

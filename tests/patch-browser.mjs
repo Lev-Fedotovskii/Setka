@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {chromium} from 'playwright';
 const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||'msedge'});
 const base=process.env.TEST_URL||'http://localhost:4175/Setka/';
@@ -24,8 +25,8 @@ try{
  await page.locator('.mobile-nav [data-nav=week]').click();await page.locator('.grid-day').first().click();assert.equal(await page.locator('h1').innerText(),'Неделя');await page.locator('[data-action=expand-week]').click();await page.locator('#week-zoom').selectOption('0.3');
  assert.ok(await page.locator('.week-grid').evaluate(e=>e.getBoundingClientRect().width<=e.parentElement.clientWidth+1));await page.screenshot({path:'artifacts/031-week-fit.png'});
  await page.setViewportSize({width:844,height:390});await page.screenshot({path:'artifacts/031-week-landscape.png'});
- await page.setViewportSize({width:1920,height:1080});await page.locator('#week-zoom').selectOption('1');await page.screenshot({path:'artifacts/031-week-desktop.png'});assert.ok((await page.locator('.grid-scroll').boundingBox()).width>1500);
- await page.emulateMedia({media:'print'});await page.screenshot({path:'artifacts/031-print.png',fullPage:true});await page.pdf({path:'artifacts/031-week.pdf',preferCSSPageSize:true});await page.emulateMedia({media:'screen'});
+ await page.locator('[data-action=expand-week]').click();await page.setViewportSize({width:1920,height:1080});await page.locator('[data-action=expand-week]').click();await page.locator('#week-zoom').selectOption('1');await page.screenshot({path:'artifacts/031-week-desktop.png'});assert.ok((await page.locator('.grid-scroll').boundingBox()).width>1500);
+ await page.emulateMedia({media:'print'});await page.screenshot({path:'artifacts/031-print.png',fullPage:true});await page.pdf({path:'artifacts/031-week.pdf',preferCSSPageSize:true});assert.equal((readFileSync('artifacts/031-week.pdf','latin1').match(/\/Type \/Page\b/g)||[]).length,1);await page.emulateMedia({media:'screen'});
  await page.locator('.grid-day').first().click();assert.equal(await page.locator('.week-grid').count(),0);
  await page.setViewportSize({width:320,height:640});await page.locator('[data-action=add-task]').first().click();await page.screenshot({path:'artifacts/031-task-small.png'});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.locator('#dialog [data-action=close]').click();
  await page.locator('.mobile-nav [data-nav=more]').click();await page.locator('[data-action=catalog]').click();await page.locator('[data-source]').filter({hasText:'2 курса магистратуры 2026-2027'}).click();await page.locator('#import-form').waitFor();assert.ok(await page.locator('[name=unresolved]:checked').count()>0);await page.locator('#import-form .sticky-button').click();assert.equal(await page.locator('#apply-import').count(),0);assert.match(await page.locator('#toast').innerText(),/Уточните/);

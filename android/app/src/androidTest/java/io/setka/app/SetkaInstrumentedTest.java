@@ -135,6 +135,9 @@ public class SetkaInstrumentedTest {
       until(scenario,"document.querySelector('#setup-form')");
       js(scenario,"document.querySelector('#setup-form').requestSubmit()");
       js(scenario,"document.querySelector('[data-nav=week]').click()");until(scenario,"document.querySelector('.week-grid')");
+      js(scenario,"document.querySelector('[data-action=expand-week]').click()");until(scenario,"innerWidth>innerHeight&&document.body.classList.contains('mobile-expanded')");
+      screenshot("expanded-week");
+      js(scenario,"document.querySelector('[data-action=expand-week]').click()");until(scenario,"!document.body.classList.contains('mobile-expanded')");
       js(scenario,"document.querySelector('[data-nav=tasks]').click();document.querySelector('[data-action=add-task]').click()");
       until(scenario,"document.querySelector('#task-form')");
       js(scenario,"document.querySelector('#task-form [name=title]').value='Android verification task';document.querySelector('#task-form').requestSubmit()");
@@ -148,7 +151,7 @@ public class SetkaInstrumentedTest {
       // Use the real system document picker; never rely on WebView blob downloads.
       js(scenario,"Capacitor.Plugins.SetkaExport.save({name:'setka-native-verification.json',text:localStorage.getItem('setka.v1')}).then(result=>window.nativeExportSaved=result.uri).catch(e=>window.testError=String(e))");
       long saveDeadline=System.currentTimeMillis()+45000;boolean saved=false;
-      while(System.currentTimeMillis()<saveDeadline){if(clickSave(InstrumentationRegistry.getInstrumentation().getUiAutomation().getRootInActiveWindow())){saved=true;break;}Thread.sleep(300);}
+      while(System.currentTimeMillis()<saveDeadline){if("true".equals(js(scenario,"Boolean(window.nativeExportSaved)"))){saved=true;break;}clickSave(InstrumentationRegistry.getInstrumentation().getUiAutomation().getRootInActiveWindow());Thread.sleep(500);}
       assertTrue("Android save dialog must offer Save; JS error="+js(scenario,"window.testError")+"; UI="+accessibilityTree(InstrumentationRegistry.getInstrumentation().getUiAutomation().getRootInActiveWindow()),saved);
       until(scenario,"window.nativeExportSaved");
       String savedUri=(String)new org.json.JSONTokener(js(scenario,"window.nativeExportSaved")).nextValue();

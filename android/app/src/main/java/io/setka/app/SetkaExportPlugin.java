@@ -11,11 +11,21 @@ import java.nio.charset.StandardCharsets;
 
 @CapacitorPlugin(name="SetkaExport")
 public class SetkaExportPlugin extends Plugin {
+  private int previousOrientation=android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
+  @PluginMethod public void weekOrientation(PluginCall call) {
+    getActivity().runOnUiThread(()->{
+      if(Boolean.TRUE.equals(call.getBoolean("expanded",false))){
+        previousOrientation=getActivity().getRequestedOrientation();
+        getActivity().setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+      }else getActivity().setRequestedOrientation(previousOrientation);
+      call.resolve();
+    });
+  }
   @PluginMethod public void printWeek(PluginCall call) {
     getActivity().runOnUiThread(()->{
       android.print.PrintManager manager=(android.print.PrintManager)getContext().getSystemService(Context.PRINT_SERVICE);
       manager.print("Сетка — неделя",getBridge().getWebView().createPrintDocumentAdapter("Сетка — неделя"),
-        new android.print.PrintAttributes.Builder().setMediaSize(android.print.PrintAttributes.MediaSize.ISO_A4.asLandscape()).build());
+        new android.print.PrintAttributes.Builder().setMediaSize(android.print.PrintAttributes.MediaSize.ISO_A4.asLandscape()).setMinMargins(android.print.PrintAttributes.Margins.NO_MARGINS).build());
       call.resolve();
     });
   }

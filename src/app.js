@@ -22,7 +22,7 @@ let state,storageError='';
 try{state=loadState(nowInZone().date);}catch(e){state=newState(nowInZone().date);storageError=e.message;}
 let view=new URLSearchParams(location.search).get('view')==='tasks'?'tasks':'today',date=validDate(new URLSearchParams(location.search).get('date'))?new URLSearchParams(location.search).get('date'):now().date,weekMode='actual',candidate=null,recommendIndex={},taskFilter='open',draftOverrides={},editingLesson=null,reviewGroup=null;
 const sourceBase=native?PUBLIC_URL:new URL('./',document.baseURI).href;
-let reviewChoices=new Map(),taskOrigin='all',weekExpanded=false,weekZoom=1;
+let reviewChoices=new Map(),taskOrigin='all',weekExpanded=false,weekZoom=matchMedia('(max-width:650px), (pointer:coarse)').matches?0.65:1,expandedMobile=false;
 let sourceCatalog=null,updateCandidate=null,updateCount=0,sourceMessage='';
 function persist(){if(storageError)throw Error('Сохранение отключено: сначала сохраните исходные данные и восстановите хранилище.');saveState(state);syncNotifications(state);}
 function mutate(fn){const previous=structuredClone(state);try{fn();persist();render();}catch(e){state=previous;toast(e.message);}}
@@ -33,6 +33,7 @@ function render(){
   const term=state.schedule?.term||DEFAULT_TERM,aw=academicWeek(date,term);
   document.body.classList.toggle('week-expanded',view==='week'&&weekExpanded);
   document.body.classList.toggle('week-view',view==='week');
+  document.body.classList.toggle('mobile-expanded',view==='week'&&weekExpanded&&expandedMobile);
   app.innerHTML=`<aside class="sidebar"><a href="./" class="brand"><img class="brand-mark" src="./assets/icon.svg" alt="" width="34" height="34">сетка<span class="brand-dot">.</span></a><div class="workspace-label">ЛИЧНЫЙ УЧЕБНЫЙ ПЛАН</div><nav>${nav()}</nav><div class="sidebar-bottom"><div class="term-label">${esc(term.title)}</div><strong>${esc(state.groupId)}</strong><p>МФТИ · Москва</p><span class="local-state"><i></i> На этом устройстве</span></div></aside><div class="shell"><header class="topbar"><span class="mobile-brand"><img class="header-mark" src="./assets/icon.svg" alt="" width="30" height="30"><strong>Сетка.</strong></span><span>МФТИ <span class="divider">/</span> ${esc(state.groupId)}</span><span class="desktop-note">${esc(term.title)} <span class="divider">/</span> ${aw.number>0?'Неделя '+aw.number:'Вне семестра'}</span></header><main>${updateCandidate&&view!=='more'?'<div class="notice"><strong>Обновление расписания</strong> · '+updateCount+' изменений <button class="subtle" data-action="review-update">Просмотреть изменения</button></div>':''}${storageError?`<div class="notice error">${esc(storageError)} Данные не перезаписываются. <button data-action="raw-backup">Скачать исходные данные</button></div>`:''}${view==='today'?today():view==='week'?week():view==='tasks'?tasks():more()}</main><footer class="page-footer">Сетка · время для учёбы и всего остального<span>Europe/Moscow</span></footer></div><nav class="mobile-nav">${nav()}</nav>`;
   fitWeek();
 }
@@ -102,7 +103,7 @@ document.addEventListener('click',async event=>{
   if(b.dataset.filter){taskFilter=b.dataset.filter;render();return;}
   const a=b.dataset.action,id=b.dataset.id;
   if(a==='close')dialog.close();
-  if(a==='expand-week'){weekExpanded=!weekExpanded;render();}
+  if(a==='expand-week')await expandWeek();
   if(a==='print-week'){if(native)await window.Capacitor.Plugins.SetkaExport.printWeek();else window.print();}
   if(a==='catalog')await showCatalog();
   if(a==='check-source')await checkSource(true);
@@ -250,3 +251,10 @@ function taskDetail(id){const t=state.tasks.find(t=>t.id===id);if(!t)return;moda
 if(window.visualViewport){const resize=()=>{document.documentElement.style.setProperty('--visual-height',visualViewport.height+'px');document.documentElement.style.setProperty('--visual-top',visualViewport.offsetTop+'px');};visualViewport.addEventListener('resize',resize);visualViewport.addEventListener('scroll',resize);resize();}
 
 document.addEventListener('click',e=>{if(e.target.matches('input[type=time]')&&matchMedia('(pointer:coarse)').matches){try{e.target.showPicker();}catch{}}});
+
+async function expandWeek(){
+ weekExpanded=!weekExpanded;expandedMobile=weekExpanded&&(native||matchMedia('(max-width:650px), (pointer:coarse)').matches);render();window.scrollTo(0,0);
+ if(native){try{await window.Capacitor.Plugins.SetkaExport.weekOrientation({expanded:weekExpanded});}catch(e){toast('Не удалось изменить ориентацию: '+e.message);}return;}
+ if(expandedMobile){try{await document.documentElement.requestFullscreen();await screen.orientation.lock('landscape');}catch{toast('Если браузер не повернул экран, поверните телефон горизонтально.');}}
+ else {screen.orientation?.unlock?.();if(document.fullscreenElement)await document.exitFullscreen();}
+}
