@@ -153,7 +153,7 @@ public class SetkaInstrumentedTest {
       // Pick the next Sunday to get a deterministic available interval independent of test date.
       js(scenario,"(()=>{const d=new Date();d.setDate(d.getDate()+(7-d.getDay()||7));const f=document.querySelector('#plan-form');f.elements.date.value=d.toISOString().slice(0,10);f.elements.start.value='12:00';f.elements.duration.value='30';f.requestSubmit()})()");
       until(scenario,"JSON.parse(localStorage.getItem('setka.v1')).sessions.length===1");
-      js(scenario,"location.reload()");until(scenario,"document.querySelector('.now-panel')");
+      js(scenario,"window.testReloadPending=true;location.reload()");until(scenario,"!window.testReloadPending&&document.querySelector('.now-panel')");
       assertEquals("true",js(scenario,"JSON.parse(localStorage.getItem('setka.v1')).sessions.length===1"));
       // Use the real system document picker; never rely on WebView blob downloads.
       js(scenario,"Capacitor.Plugins.SetkaExport.save({name:'setka-native-verification.json',text:localStorage.getItem('setka.v1')}).then(result=>window.nativeExportSaved=result.uri).catch(e=>window.testError=String(e))");
@@ -170,7 +170,7 @@ public class SetkaInstrumentedTest {
       }
       // Offline reload must use bundled Android assets, not any development server.
       shell("svc wifi disable");shell("svc data disable");
-      js(scenario,"location.reload()");until(scenario,"document.querySelector('.now-panel')");
+      js(scenario,"window.testReloadPending=true;location.reload()");until(scenario,"!window.testReloadPending&&document.querySelector('.now-panel')");
       assertEquals("true",js(scenario,"JSON.parse(localStorage.getItem('setka.v1')).tasks.some(t=>t.title==='Android verification task')"));
       shell("svc wifi enable");shell("svc data enable");
       js(scenario,"window.testNetworkPoll=setInterval(async()=>{try{const r=await fetch('https://lev-fedotovskii.github.io/Setka/data/catalog.json');window.testOnline=r.ok;if(r.ok)clearInterval(window.testNetworkPoll)}catch(e){window.testError=String(e)}},500)");
