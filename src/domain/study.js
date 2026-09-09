@@ -2,7 +2,7 @@ import {nowInZone,addDays} from './dates.js';
 
 export const subjectKey=title=>String(title||'').trim().toLocaleLowerCase('ru').replaceAll('ё','е').replace(/\s+/g,' ');
 export function studySubjects(state){
-  return [...new Set([...(state.schedule?.series||[]).map(s=>s.title),...state.tasks.map(t=>t.subject||t.origin?.subject),...(state.measurements||[]).map(s=>s.subject)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
+  return [...new Set([...(state.schedule?.series||[]).map(s=>s.title),...(state.personalSelections||[]).filter(s=>!s.disabled).map(s=>s.subject),...state.tasks.map(t=>t.subject||t.origin?.subject),...(state.measurements||[]).map(s=>s.subject)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
 }
 export function elapsedStudy(timer,at){
   if(!timer)return 0;

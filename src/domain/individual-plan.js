@@ -28,7 +28,7 @@ export function addPersonalSelection(state,sourceSchedule,series,fields){
   let source=state.academicSources[sourceId];
   if(!source){source=state.academicSources[sourceId]={schedule:{...structuredClone(sourceSchedule),series:[]},missing:[]};}
   if(!source.schedule.series.some(s=>s.id===series.id))source.schedule.series.push(structuredClone(series));
-  state.personalSelections.push({id:fields.id,sourceId,seriesId:series.id,subject:fields.subject||series.title,from:fields.from,to:fields.to,weekdays:fields.weekdays,dates:fields.dates,excludeDates:[],hideSeriesIds:fields.hideSeriesIds||[]});
+  state.personalSelections.push({id:fields.id,sourceId,seriesId:series.id,subject:fields.subject||series.title,from:fields.from,to:fields.to,weekdays:fields.weekdays,dates:fields.dates,excludeDates:fields.excludeDates||[],hideSeriesIds:fields.hideSeriesIds||[]});
 }
 export function updatePersonalSource(state,sourceId,candidate,diff){
   const source=state.academicSources[sourceId];if(!source)return;

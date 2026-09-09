@@ -11,6 +11,8 @@ test('cross-group choice hides only selected own series during chosen dates and 
   const state=newState('2026-09-08');state.groupId='g';state.schedule=schedule('own',[lesson('own')]);const extra=lesson('extra'),sc=schedule('external',[extra]);
   addPersonalSelection(state,sc,extra,{id:'choice',from:'2026-09-08',to:'2026-09-30',weekdays:[2],dates:[],hideSeriesIds:['own']});
   assert.equal(academicOccurrences(state,'2026-09-08').length,1);assert.equal(academicOccurrences(state,'2026-09-08')[0].selectionId,'choice');assert.equal(academicOccurrences(state,'2026-10-06')[0].seriesId,'own');
+  state.personalSelections[0].excludeDates=['2026-09-08'];assert.equal(academicOccurrences(state,'2026-09-08')[0].seriesId,'own');assert.equal(academicOccurrences(state,'2026-09-15')[0].selectionId,'choice');
+  state.personalSelections[0].excludeDates=[];assert.equal(academicOccurrences(state,'2026-09-08')[0].selectionId,'choice');
   state.personalSelections[0].disabled=true;assert.equal(academicOccurrences(state,'2026-09-08')[0].seriesId,'own');
 });
 test('source updates retain selected identity, ranges, choices and missing lessons with warning',()=>{

@@ -25,7 +25,7 @@ public class SetkaInstrumentedTest {
       js(scenario,"document.querySelector('#study-start [name=subject]').value='Native study';document.querySelector('#study-start').requestSubmit()");
       until(scenario,"JSON.parse(localStorage.getItem('setka.v1')).activeStudy");
       shell("input keyevent KEYCODE_HOME");Thread.sleep(1500);
-      js(scenario,"location.reload()");until(scenario,"document.querySelector('[data-study-clock]')");
+      js(scenario,"window.testReloadPending=true;location.reload()");until(scenario,"!window.testReloadPending&&document.querySelector('[data-study-clock]')");
       assertEquals("true",js(scenario,"JSON.parse(localStorage.getItem('setka.v1')).activeStudy.subject==='Native study'"));
       js(scenario,"document.querySelector('[data-study=finish]').click()");until(scenario,"document.querySelector('#study-finish')");
       js(scenario,"document.querySelector('#study-finish [name=minutes]').value='0.5';document.querySelector('#study-finish').requestSubmit()");
