@@ -17,3 +17,5 @@
 Published only after API 35/36 emulator release checks pass, including coexistence, Stable-data retention, timer recovery and status reboot checks. Physical testing of these new features is still required; the Samsung S23 channel-coexistence confirmation concerned Unstable.1 only. Without exact alarm permission, status transitions may be delayed; force-stop/battery restrictions can interrupt delivery. No closed-PWA notification promise. A forgotten timer is reviewed when finishing. Inherited 0.3.x corrections need their original workbook reopened if no undo baseline exists.
 
 See [functional decisions, verification and remaining device checks](https://github.com/Lev-Fedotovskii/Setka/blob/main/docs/design/DD-010-functional-04.md). Phys Pastel remains the current appearance; GLIWA and the broader visual work are deferred to 0.5.
+
+[Verification record](https://github.com/Lev-Fedotovskii/Setka/blob/main/docs/verification-04.md) · [Short physical-device procedure](https://github.com/Lev-Fedotovskii/Setka/blob/main/docs/unstable-device-check.md)
