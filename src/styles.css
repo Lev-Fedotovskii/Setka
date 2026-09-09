@@ -159,4 +159,8 @@ dialog.onboarding-flow .import-records{max-height:none}
   .now-panel{padding:12px 14px 0;margin-bottom:16px}.now-top{margin-bottom:6px;font-size:9px;letter-spacing:1px}.now-symbol{display:none}
   .now-panel h2{font-size:18px;line-height:1.25;letter-spacing:-.2px}.now-panel>p{font-size:11px;margin:6px 0 8px}
   .next-line{padding:8px 0;gap:6px;font-size:11px;line-height:1.4}
+  .day-column>.section-heading{gap:6px;margin-bottom:12px}
+  .day-column>.section-heading h2{font-size:17px;white-space:nowrap}
+  .day-column>.section-heading .primary-actions{gap:4px;flex-shrink:0;flex-wrap:nowrap}
+  .day-column>.section-heading .secondary{font-size:11px;padding:8px;white-space:nowrap}
 }
