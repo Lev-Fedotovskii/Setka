@@ -34,16 +34,26 @@ public class SetkaInstrumentedTest {
     long now=System.currentTimeMillis();
     String entries="[{\"at\":"+(now-1000)+",\"show\":true,\"title\":\"Status before boot\",\"body\":\"Local transition test\"},{\"at\":"+(now+1500)+",\"show\":true,\"title\":\"Status after transition\",\"body\":\"Local transition test\"}]";
     SetkaStatusReceiver.prefs(context).edit().putBoolean("enabled",true).putBoolean("stopped",false).putLong("expiresAt",now+600000).putString("entries",entries).commit();
-    SetkaStatusReceiver.refresh(context);Thread.sleep(500);
+    SetkaStatusReceiver.refresh(context);
     NotificationManager manager=(NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-    assertTrue(java.util.Arrays.stream(manager.getActiveNotifications()).anyMatch(n->n.getId()==SetkaStatusReceiver.ID));
+    awaitStatus(manager,true,null);
     Thread.sleep(1800);SetkaStatusReceiver.refresh(context);
-    assertTrue(java.util.Arrays.stream(manager.getActiveNotifications()).anyMatch(n->"Status after transition".contentEquals(n.getNotification().extras.getCharSequence("android.title",""))));
+    awaitStatus(manager,true,"Status after transition");
     new SetkaStatusReceiver().onReceive(context,new android.content.Intent(SetkaStatusReceiver.STOP));
     assertFalse(SetkaStatusReceiver.prefs(context).getBoolean("enabled",true));assertTrue(SetkaStatusReceiver.prefs(context).getBoolean("stopped",false));
-    SetkaStatusReceiver.refresh(context);assertFalse(java.util.Arrays.stream(manager.getActiveNotifications()).anyMatch(n->n.getId()==SetkaStatusReceiver.ID));
+    SetkaStatusReceiver.refresh(context);awaitStatus(manager,false,null);
     // Leave a fresh enabled plan for the following real emulator reboot test.
     SetkaStatusReceiver.prefs(context).edit().putBoolean("enabled",true).putBoolean("stopped",false).commit();SetkaStatusReceiver.refresh(context);
+  }
+  private void awaitStatus(NotificationManager manager,boolean present,String title) throws Exception {
+    long end=System.currentTimeMillis()+15000;String actual="";
+    while(System.currentTimeMillis()<end){
+      boolean found=false;actual="";
+      for(android.service.notification.StatusBarNotification n:manager.getActiveNotifications())if(n.getId()==SetkaStatusReceiver.ID){found=true;actual=n.getNotification().extras.getCharSequence("android.title","").toString();}
+      if(found==present&&(!present||title==null||title.equals(actual)))return;
+      Thread.sleep(250);
+    }
+    fail("Status publication timed out: present="+present+", expected title="+title+", actual="+actual);
   }
   @Test public void statusSurvivesReboot() throws Exception {
     Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
