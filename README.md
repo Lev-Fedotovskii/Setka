@@ -1,11 +1,11 @@
 # Setka / Сетка
 
-Stable **0.3.2** · Development **0.4.0-unstable.2**. A personal university planner for MIPT. **Today comes first:** what is happening now, what comes next, and what fits into your free time.
+Stable **0.3.2** · Development **0.4.0-unstable.3**. A personal university planner for MIPT. **Today comes first:** what is happening now, what comes next, and what fits into your free time.
 
 | Channel | Open PWA | Android download |
 | --- | --- | --- |
 | **Stable — recommended** | [Setka](https://lev-fedotovskii.github.io/Setka/) | [Latest stable APK](https://github.com/Lev-Fedotovskii/Setka/releases/latest) |
-| **Unstable — testing only** | [Setka Unstable](https://lev-fedotovskii.github.io/Setka/unstable/) | [0.4.0-unstable.2 APK](https://github.com/Lev-Fedotovskii/Setka/releases/download/v0.4.0-unstable.2/Setka-0.4.0-unstable.2.apk) |
+| **Unstable — testing only** | [Setka Unstable](https://lev-fedotovskii.github.io/Setka/unstable/) | [0.4.0-unstable.3 APK](https://github.com/Lev-Fedotovskii/Setka/releases/download/v0.4.0-unstable.3/Setka-0.4.0-unstable.3.apk) |
 
 Unstable installs separately and starts with its own data. It is not the completed 0.4 release. Stable stays on 0.3.2 while official timetable updates continue; promotion requires the owner's explicit approval. See [channel isolation, testing and release procedure](docs/release-channels.md).
 

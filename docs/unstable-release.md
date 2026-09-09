@@ -5,6 +5,7 @@
 - Stable remains v0.3.2 at https://lev-fedotovskii.github.io/Setka/ and remains the default download.
 - Local study timer with pause/restart recovery, corrections, fractional progress and subject statistics. Measured time stays separate from plans/estimates.
 - Full-screen onboarding and document scroll/gesture locking behind dialogs.
+- On phones, the study action sits beside Today; active timing uses a compact row and now/next is shorter, keeping the timetable visible on the first screen.
 - Minimum recommendation windows and reversible dated/weekly exclusions, independently of occupied time and reminders.
 - Subject/deadline/reminder/repeating task controls; moving planned work; personal-event series/occurrence editing and undo.
 - Cross-source lesson selection with personal day/date ranges and own-class hiding, reviewable updates and attendance decisions for overlaps.

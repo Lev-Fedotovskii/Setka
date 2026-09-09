@@ -133,3 +133,30 @@ dialog.onboarding-flow .import-records{max-height:none}
 .study-summary{padding:14px 0;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between}.study-summary p{flex-basis:100%;font-size:13px}
 @media(max-width:650px){.study-panel .primary-actions{flex-wrap:wrap}.mobile-brand strong{font-size:13px}}
 @media print{.study-panel{display:none}}
+.today-heading{flex-wrap:wrap}.today-heading>.study-panel{flex-basis:100%;margin:0}.study-label-short{display:none}
+@media(max-width:650px){
+  .today-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;margin-bottom:16px;align-items:center}
+  .today-heading-copy{display:contents}.today-heading-copy>.eyebrow{grid-column:1/-1;grid-row:1;margin:0;font-size:9px;letter-spacing:1px}
+  .today-heading-copy>h1{grid-column:1;grid-row:2;font-size:30px;letter-spacing:-1px}.today-heading-copy>p{display:none}
+  main:has(>.today-heading){padding-top:20px}
+  .today-heading>.date-control{grid-column:1/-1;grid-row:3;justify-self:stretch;margin-top:0;flex-wrap:nowrap;width:100%;gap:0}
+  .today-heading>.date-control input{width:116px;min-width:0;flex:1}
+  .today-heading>.date-control button{flex-shrink:0;min-height:40px}
+  .today-heading>.date-control .subtle{padding:8px 6px}
+  .today-heading>.study-panel{grid-column:2;grid-row:2;padding:0;border:0;background:none;gap:0;min-width:0}
+  .today-heading>.study-panel:not(.is-active)>div:first-child{display:none}
+  .study-label-long{display:none}.study-label-short{display:inline}
+  .today-heading .study-panel .primary-actions{gap:2px;flex-wrap:nowrap}
+  .today-heading .study-panel button{min-height:44px;padding:8px 10px;font-size:12px}
+  .today-heading .study-panel [data-study=stats]{min-width:40px;font-size:20px;padding:6px}
+  .today-heading:has(.study-panel.is-active)>.date-control{grid-row:4}
+  .today-heading>.study-panel.is-active{grid-column:1/-1;grid-row:3;display:flex;padding:8px 10px;background:#eee8fa;gap:6px 10px}
+  .study-panel.is-active>div:first-child{flex:1;min-width:80px}.study-panel.is-active strong{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .today-heading .study-panel.is-active button{padding:6px}.today-heading .study-panel.is-active [data-study=stats]{min-width:32px}
+  .study-panel.is-active .study-running-state{display:none}
+  .today-heading .study-panel.is-active p{font-size:11px;margin:0}.study-panel.is-active output{font-size:18px}
+  .study-panel.is-active>.section-caption,.study-panel.is-active>.notice{flex-basis:100%;margin:0}
+  .now-panel{padding:12px 14px 0;margin-bottom:16px}.now-top{margin-bottom:6px;font-size:9px;letter-spacing:1px}.now-symbol{display:none}
+  .now-panel h2{font-size:18px;line-height:1.25;letter-spacing:-.2px}.now-panel>p{font-size:11px;margin:6px 0 8px}
+  .next-line{padding:8px 0;gap:6px;font-size:11px;line-height:1.4}
+}

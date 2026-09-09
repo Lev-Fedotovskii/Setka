@@ -15,5 +15,5 @@ Do not report an unchecked step as passed. Browser and emulator evidence cannot 
 ## Recorded physical results
 
 - **Samsung S23, Unstable.1:** owner replied “All good. samsung s23” to the coexistence procedure: two launcher entries, fresh Unstable setup, unchanged Stable tasks after creating a task in Unstable. Android version not supplied.
-- **Unstable.2 functional steps above:** awaiting physical results. No additional device test is claimed.
+- **Unstable.3 functional steps above:** awaiting physical results. No additional device test is claimed.
 - **Old 0.2 recovery on the tester's Xiaomi:** still awaiting the original device/example; do not remove that installation or its data.
