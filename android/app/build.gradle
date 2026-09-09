@@ -13,7 +13,7 @@ android {
         applicationId "io.setka.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
+        versionCode 7
         versionName releaseVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -39,6 +39,9 @@ android {
         }
     }
     buildTypes {
+        debug {
+            applicationIdSuffix unstableChannel ? '.unstable.debug' : '.debug'
+        }
         release {
             // The unrecoverable CI debug identity cannot update v0.2.0.
             // Side-by-side installation keeps that app and its personal data intact.

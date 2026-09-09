@@ -1,5 +1,6 @@
 import {addDays,clock} from './dates.js';
 import {occurrences} from './schedule.js';
+import {academicOccurrences,academicRange} from './individual-plan.js';
 export const DEFAULT_RULES=[
   {id:'lecture-notes',kind:'lecture',title:'Разобрать материал лекции',minutes:30,enabled:true},
   {id:'seminar-homework',kind:'seminar',title:'Сделать ДЗ',minutes:60,enabled:true},
@@ -11,8 +12,8 @@ export function ruleFor(rules,kind){
   return rule?.enabled?rule:undefined;
 }
 export function nextClassDate(state,event){
-  for(let date=addDays(event.date,1);date<=state.schedule.term.endsOn;date=addDays(date,1)){
-    if(occurrences(state.schedule,state.groupId,date).some(e=>e.title===event.title&&e.kind===event.kind))return date;
+  for(let date=addDays(event.date,1);date<=(academicRange(state)?.endsOn||event.date);date=addDays(date,1)){
+    if(academicOccurrences(state,date).some(e=>e.title===event.title&&e.kind===event.kind))return date;
   }
   return null;
 }

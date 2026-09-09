@@ -16,7 +16,7 @@ try{
   const cdp=await context.newCDPSession(page);await cdp.send('Page.enable');
   const {installabilityErrors}=await cdp.send('Page.getInstallabilityErrors');
   assert.deepEqual(installabilityErrors,[]);
-  await page.goto(base+'?view=tasks');await page.waitForSelector('[data-filter]');
+  await page.goto(base+'?view=tasks');await page.locator('#dialog[open]').waitFor();await page.locator('#dialog [data-action=close]').click();await page.waitForSelector('[data-filter]');
   await page.reload();assert.ok(page.url().startsWith(base));
   console.log('PWA manifest, subpath/service-worker scope and Chromium installability checks passed.');
 }finally{await context.close();}

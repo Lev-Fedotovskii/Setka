@@ -15,6 +15,45 @@ import org.junit.runner.RunWith;
 /** Runs only in the isolated Android test application/device, never normal user storage. */
 @RunWith(AndroidJUnit4.class)
 public class SetkaInstrumentedTest {
+  @Test public void studyRecoveryAndStatusLifecycle() throws Exception {
+    Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
+    shell("pm grant "+context.getPackageName()+" android.permission.POST_NOTIFICATIONS");
+    try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
+      until(scenario,"document.querySelector('.now-panel')");
+      js(scenario,"document.querySelector('#dialog').close();document.querySelector('[data-nav=today]').click();document.querySelector('[data-study=start]').click()");
+      until(scenario,"document.querySelector('#study-start')");
+      js(scenario,"document.querySelector('#study-start [name=subject]').value='Native study';document.querySelector('#study-start').requestSubmit()");
+      until(scenario,"JSON.parse(localStorage.getItem('setka.v1')).activeStudy");
+      shell("input keyevent KEYCODE_HOME");Thread.sleep(1500);
+      js(scenario,"location.reload()");until(scenario,"document.querySelector('[data-study-clock]')");
+      assertEquals("true",js(scenario,"JSON.parse(localStorage.getItem('setka.v1')).activeStudy.subject==='Native study'"));
+      js(scenario,"document.querySelector('[data-study=finish]').click()");until(scenario,"document.querySelector('#study-finish')");
+      js(scenario,"document.querySelector('#study-finish [name=minutes]').value='0.5';document.querySelector('#study-finish').requestSubmit()");
+      until(scenario,"JSON.parse(localStorage.getItem('setka.v1')).measurements.some(m=>m.subject==='Native study'&&m.measuredMs===30000)");
+    }
+    long now=System.currentTimeMillis();
+    String entries="[{\"at\":"+(now-1000)+",\"show\":true,\"title\":\"Status before boot\",\"body\":\"Local transition test\"},{\"at\":"+(now+1500)+",\"show\":true,\"title\":\"Status after transition\",\"body\":\"Local transition test\"}]";
+    SetkaStatusReceiver.prefs(context).edit().putBoolean("enabled",true).putBoolean("stopped",false).putLong("expiresAt",now+600000).putString("entries",entries).commit();
+    SetkaStatusReceiver.refresh(context);Thread.sleep(500);
+    NotificationManager manager=(NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+    assertTrue(java.util.Arrays.stream(manager.getActiveNotifications()).anyMatch(n->n.getId()==SetkaStatusReceiver.ID));
+    Thread.sleep(1800);SetkaStatusReceiver.refresh(context);
+    assertTrue(java.util.Arrays.stream(manager.getActiveNotifications()).anyMatch(n->"Status after transition".contentEquals(n.getNotification().extras.getCharSequence("android.title",""))));
+    new SetkaStatusReceiver().onReceive(context,new android.content.Intent(SetkaStatusReceiver.STOP));
+    assertFalse(SetkaStatusReceiver.prefs(context).getBoolean("enabled",true));assertTrue(SetkaStatusReceiver.prefs(context).getBoolean("stopped",false));
+    SetkaStatusReceiver.refresh(context);assertFalse(java.util.Arrays.stream(manager.getActiveNotifications()).anyMatch(n->n.getId()==SetkaStatusReceiver.ID));
+    // Leave a fresh enabled plan for the following real emulator reboot test.
+    SetkaStatusReceiver.prefs(context).edit().putBoolean("enabled",true).putBoolean("stopped",false).commit();SetkaStatusReceiver.refresh(context);
+  }
+  @Test public void statusSurvivesReboot() throws Exception {
+    Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
+    assertTrue(SetkaStatusReceiver.prefs(context).getBoolean("enabled",false));
+    NotificationManager manager=(NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+    long end=System.currentTimeMillis()+30000;boolean shown=false;
+    while(System.currentTimeMillis()<end){shown=java.util.Arrays.stream(manager.getActiveNotifications()).anyMatch(n->n.getId()==SetkaStatusReceiver.ID);if(shown)break;Thread.sleep(500);}
+    assertTrue("Boot receiver should restore persisted status without opening the activity",shown);
+    new SetkaStatusReceiver().onReceive(context,new android.content.Intent(SetkaStatusReceiver.STOP));
+  }
   @Test public void unstableStartsIsolated() throws Exception {
     Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
     assertEquals("io.setka.app.unstable",context.getPackageName());
@@ -93,7 +132,7 @@ public class SetkaInstrumentedTest {
     return result.toString();
   }
   private String js(ActivityScenario<MainActivity> scenario, String script) throws Exception {
-    final String channelScript=InstrumentationRegistry.getInstrumentation().getTargetContext().getPackageName().endsWith(".unstable")?script.replace("setka.v1","setka.unstable.v1"):script;
+    final String channelScript=InstrumentationRegistry.getInstrumentation().getTargetContext().getPackageName().contains(".unstable")?script.replace("setka.v1","setka.unstable.v1"):script;
     CountDownLatch latch=new CountDownLatch(1); AtomicReference<String> result=new AtomicReference<>();
     scenario.onActivity(activity->activity.getBridge().getWebView().evaluateJavascript(channelScript,value->{result.set(value);latch.countDown();}));
     assertTrue("JavaScript evaluation timed out",latch.await(15,TimeUnit.SECONDS));return result.get();
@@ -117,7 +156,7 @@ public class SetkaInstrumentedTest {
   @Test public void localImportPlanningPersistenceAndBackgroundNotification() throws Exception {
     Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
     String packageId=context.getPackageName();
-    assertTrue(packageId.equals("io.setka.app")||packageId.equals("io.setka.app.release")||packageId.equals("io.setka.app.unstable"));
+    assertTrue(packageId.equals("io.setka.app")||packageId.equals("io.setka.app.release")||packageId.startsWith("io.setka.app.unstable"));
     shell("pm grant "+packageId+" android.permission.POST_NOTIFICATIONS");
     shell("appops set "+packageId+" SCHEDULE_EXACT_ALARM allow");
     try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){

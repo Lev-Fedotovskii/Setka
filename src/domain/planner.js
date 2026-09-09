@@ -1,6 +1,8 @@
 import { addDays, daysBetween, validDate } from './dates.js';
 import { dayEvents, occurrences } from './schedule.js';
 import {ruleFor,followupTask} from './followups.js';
+import {repeatCompletedTask} from './task-repeat.js';
+import {academicOccurrences,academicRange} from './individual-plan.js';
 export function freeWindows(events, start=540, end=1260, minimum=20) {
   const occupied=events.filter(e=>e.end>start && e.start<end).map(e=>({start:Math.max(start,e.start),end:Math.min(end,e.end)})).sort((a,b)=>a.start-b.start);
   const result=[]; let cursor=start;
@@ -11,15 +13,17 @@ export function freeWindows(events, start=540, end=1260, minimum=20) {
 export function unallocated(task,sessions) {
   return Math.max(0,task.remainingMinutes-sessions.filter(s=>s.taskId===task.id && s.status==='planned').reduce((n,s)=>n+s.end-s.start,0));
 }
-export function recommend(tasks,sessions,window,date) {
+export function recommend(tasks,sessions,window,date,context={}) {
   const available=window.end-window.start;
   return tasks.filter(t=>t.status==='todo').flatMap(t=>{
     const left=unallocated(t,sessions), duration=Math.min(left,available);
     if(left<=0 || (!t.splittable && left>available) || duration<Math.min(t.minimumSessionMinutes||20,left))return [];
     const due=t.dueOn ? daysBetween(date,t.dueOn) : 999;
     const reason=due<0?'Срок прошёл':due===0?'Сдать сегодня':due===1?'Сдать завтра':due<=7?`Сдать через ${due} дн.`:'Без близкого срока';
-    const score=(due<0?120:due===0?100:due===1?80:due<=3?55:due<=7?25:0)+t.priority*8+(left<=available?15:0);
-    return [{task:t,duration,reason:`${reason} · ${left<=available?'поместится целиком':'часть большой задачи'}${t.priority>=4?' · высокий приоритет':''}`,score}];
+    const subject=t.subject||t.origin?.subject,studied=(context.measurements||[]).filter(m=>m.subject===subject&&m.date>=addDays(date,-6)&&m.date<=date).reduce((n,m)=>n+m.measuredMs/60000,0);
+    const balance=context.settings?.studyApproach==='balanced'&&subject&&due>1?Math.max(0,20-studied/30):0;
+    const score=(due<0?120:due===0?100:due===1?80:due<=3?55:due<=7?25:0)+t.priority*8+(left<=available?15:0)+balance;
+    return [{task:t,duration,reason:`${reason} · ${left<=available?'поместится целиком':'часть большой задачи'}${t.priority>=4?' · высокий приоритет':''}${balance?' · по предмету записано '+Math.round(studied)+' мин за 7 дней':''}`,score}];
   }).sort((a,b)=>b.score-a.score || a.task.id.localeCompare(b.task.id));
 }
 export function planSession(state,taskId,date,start,duration,now) {
@@ -34,18 +38,25 @@ export function planSession(state,taskId,date,start,duration,now) {
   const session={id:crypto.randomUUID(),taskId,date,start,end:start+duration,status:'planned'};
   state.sessions.push(session);return session;
 }
-export function finishSession(state,id) {
+export function finishSession(state,id,completedOn) {
   const s=state.sessions.find(s=>s.id===id);if(!s || s.status!=='planned')return;
   s.status='done';const t=state.tasks.find(t=>t.id===s.taskId);
   t.remainingMinutes=Math.max(0,t.remainingMinutes-(s.end-s.start));
-  if(!t.remainingMinutes){t.status='done';state.sessions.filter(x=>x.taskId===t.id && x.status==='planned').forEach(x=>x.status='skipped');}
+  if(!t.remainingMinutes){t.status='done';if(completedOn){t.completedOn=completedOn;repeatCompletedTask(state,t,completedOn);}state.sessions.filter(x=>x.taskId===t.id && x.status==='planned').forEach(x=>x.status='skipped');}
 }
-export function completeTask(state,id) {
+export function completeTask(state,id,completedOn) {
   const t=state.tasks.find(t=>t.id===id);if(!t)return;
   if(t.status==='done')return;
   t.completionUndo={remainingMinutes:t.remainingMinutes,sessionIds:state.sessions.filter(s=>s.taskId===id&&s.status==='planned').map(s=>s.id)};
   t.status='done';t.remainingMinutes=0;
+  if(completedOn){t.completedOn=completedOn;repeatCompletedTask(state,t,completedOn);}
   state.sessions.filter(s=>s.taskId===id && s.status==='planned').forEach(s=>s.status='skipped');
+}
+export function moveSession(state,id,date,start,duration,now){
+  const existing=state.sessions.find(s=>s.id===id);if(!existing||existing.status!=='planned')throw Error('Можно изменить только запланированную работу.');
+  const previous=structuredClone(state.sessions);
+  try{state.sessions=state.sessions.filter(s=>s.id!==id);const next=planSession(state,existing.taskId,date,start,duration,now);next.id=id;return next;}
+  catch(error){state.sessions=previous;throw error;}
 }
 export function reopenTask(state,id){
   const t=state.tasks.find(t=>t.id===id);if(!t||t.status!=='done')return;
@@ -60,18 +71,29 @@ export function previousWeekTasks(state,now){
 }
 // Cursor is persisted even when no rule fires. Enabling a rule is prospective.
 export function catchUp(state,now) {
-  if(!state.schedule)return 0;
+  const range=academicRange(state);if(!range)return 0;
+  state.pendingAttendance??=[];state.attendance??={};
+  for(const pending of state.pendingAttendance){
+    if(state.attendance[pending.event.id]===undefined)continue;
+    const rule=ruleFor(state.rules,pending.event.kind);
+    if(state.attendance[pending.event.id]&&rule&&!state.generatedKeys.includes(pending.key)){state.tasks.push(followupTask(state,pending.event,rule,pending.key));state.generatedKeys.push(pending.key);}
+  }
+  state.pendingAttendance=state.pendingAttendance.filter(p=>state.attendance[p.event.id]===undefined);
   let date=state.generatedThrough?.date || now.date;
   const old=state.generatedThrough || {date:now.date,minute:0};
   if(date>now.date)return 0;
-  date=date<state.schedule.term.startsOn?state.schedule.term.startsOn:date;
-  const last=now.date<state.schedule.term.endsOn?now.date:state.schedule.term.endsOn;
+  date=date<range.startsOn?range.startsOn:date;
+  const last=now.date<range.endsOn?now.date:range.endsOn;
   let count=0;
-  for(;date<=last;date=addDays(date,1))for(const e of occurrences(state.schedule,state.groupId,date)) {
+  for(;date<=last;date=addDays(date,1))for(const e of academicOccurrences(state,date)) {
     if((date===old.date && e.end<=old.minute)||(date===now.date && e.end>now.minute))continue;
     const rule=ruleFor(state.rules,e.kind);if(!rule)continue;
     const key=`followup:${e.id}:${rule.id}`;
     if(state.generatedKeys.includes(key))continue;
+    if(academicOccurrences(state,date).some(other=>other.id!==e.id&&e.start<other.end&&other.start<e.end)){
+      if(state.attendance[e.id]===false)continue;
+      if(state.attendance[e.id]!==true){if(!state.pendingAttendance.some(p=>p.key===key))state.pendingAttendance.push({key,event:structuredClone(e)});continue;}
+    }
     state.generatedKeys.push(key);
     state.tasks.push(followupTask(state,e,rule,key));count++;
   }

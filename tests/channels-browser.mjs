@@ -6,7 +6,9 @@ const context=await browser.newContext();
 try{
   const stable=await context.newPage(),unstable=await context.newPage();
   async function ready(page,url){
-    await page.goto(url);await page.locator('.now-panel').waitFor();
+    await page.goto(url);
+    if(await page.locator('#dialog[open]').count())await page.locator('#dialog [data-action=close]').click();
+    await page.locator('.now-panel').waitFor();
     await page.evaluate(async()=>{await navigator.serviceWorker.ready;});
     await page.waitForFunction(()=>navigator.serviceWorker.controller);
     if(await page.locator('#dialog[open]').count())await page.locator('#dialog [data-action=close]').click();
@@ -46,7 +48,7 @@ try{
   assert.deepEqual(await stable.evaluate(()=>caches.keys()),keys);
   await context.setOffline(true);
   await stable.reload();await stable.locator('.now-panel').waitFor();
-  await unstable.reload();await unstable.locator('.now-panel').waitFor();
+  await unstable.reload();await unstable.locator('#dialog[open]').waitFor();await unstable.locator('#dialog [data-action=close]').click();await unstable.locator('.now-panel').waitFor();
   assert.equal(await unstable.title(),'Setka Unstable — тестовая версия');
   assert.equal(await stable.evaluate(()=>JSON.parse(localStorage.getItem('setka.v1')).tasks[0].title),'Stable channel sentinel');
   assert.equal(await unstable.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')).tasks[0].title),'Unstable channel sentinel');

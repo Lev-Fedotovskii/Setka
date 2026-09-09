@@ -1,7 +1,18 @@
-import {Capacitor} from '@capacitor/core';
+import {Capacitor,registerPlugin} from '@capacitor/core';
 import {LocalNotifications} from '@capacitor/local-notifications';
 import {App} from '@capacitor/app';
 import {storageKey} from '../channel.js';
+import {statusPlan} from '../domain/status-plan.js';
+const Status=registerPlugin('SetkaStatus');
+let statusMessage='Статус «Сейчас и дальше» выключен';
+export const nowNextStatus=()=>statusMessage;
+export async function configureNowNext(state,enabled){
+  if(!native)return;
+  if(enabled&&await permission(true)!=='granted')throw Error('Разрешите уведомления Android.');
+  const result=await Status.sync({enabled,explicit:true,...statusPlan(state)});
+  state.notifications.nowNext=enabled;
+  statusMessage=result.enabled?'Статус включён. Переходы могут задерживаться без точных будильников.':'Статус выключен';
+}
 import {notificationIntents,notificationDiff,notificationId} from '../domain/notifications.js';
 export const native=Capacitor.isNativePlatform();
 let queue=Promise.resolve(),timers=[],status='Уведомления выключены';
@@ -24,6 +35,8 @@ async function sync(state){
   timers.forEach(clearTimeout);timers=[];
   const granted=await permission(),intents=notificationIntents(state,Date.now()-(native?0:1000));
   if(native){
+    const result=await Status.sync({enabled:!!state.notifications.nowNext&&granted==='granted',...statusPlan(state)});
+    statusMessage=result.stopped?'Статус остановлен вами. Для возврата нажмите «Включить статус».':result.enabled?'Статус включён; план обновлён на 30 дней. Без точных будильников переходы могут задерживаться.':'Статус выключен';
     const pending=(await LocalNotifications.getPending()).notifications;
     if(!state.notifications?.enabled||granted!=='granted'){
       if(pending.length)await LocalNotifications.cancel({notifications:pending.map(p=>({id:p.id}))});

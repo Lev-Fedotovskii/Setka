@@ -1,13 +1,15 @@
 # Setka / Сетка
 
-Stable **0.3.2** · Development **0.4.0-unstable.1**. A personal university planner for MIPT. **Today comes first:** what is happening now, what comes next, and what fits into your free time.
+Stable **0.3.2** · Development **0.4.0-unstable.2**. A personal university planner for MIPT. **Today comes first:** what is happening now, what comes next, and what fits into your free time.
 
 | Channel | Open PWA | Android download |
 | --- | --- | --- |
 | **Stable — recommended** | [Setka](https://lev-fedotovskii.github.io/Setka/) | [Latest stable APK](https://github.com/Lev-Fedotovskii/Setka/releases/latest) |
-| **Unstable — testing only** | [Setka Unstable](https://lev-fedotovskii.github.io/Setka/unstable/) | [0.4.0-unstable.1 APK](https://github.com/Lev-Fedotovskii/Setka/releases/download/v0.4.0-unstable.1/Setka-0.4.0-unstable.1.apk) |
+| **Unstable — testing only** | [Setka Unstable](https://lev-fedotovskii.github.io/Setka/unstable/) | [0.4.0-unstable.2 APK](https://github.com/Lev-Fedotovskii/Setka/releases/download/v0.4.0-unstable.2/Setka-0.4.0-unstable.2.apk) |
 
 Unstable installs separately and starts with its own data. It is not the completed 0.4 release. Stable stays on 0.3.2 while official timetable updates continue; promotion requires the owner's explicit approval. See [channel isolation, testing and release procedure](docs/release-channels.md).
+
+The Unstable functional candidate adds a recoverable study timer and local subject statistics, individual cross-group timetable choices, repeating tasks and editable plans, personal event exceptions, recommendation-window controls, full-screen onboarding and optional Android now/next status. See [behaviour, verification and remaining device checks](docs/design/DD-010-functional-04.md).
 
 0.3.2 fixes repeated mobile Week expansion/collapse, restores the previous normal zoom, fits the expanded timetable to both screen axes and adds continuous slider/two-finger zoom confined to the timetable.
 

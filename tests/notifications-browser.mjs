@@ -18,7 +18,7 @@ try {
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')).notifications.enabled);
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')).notifications.enabled),true);
   const fixture=await page.evaluate(async()=>{
-    const {newState}=await import('./src/storage.js');const s=newState('2026-09-06');s.notifications.enabled=true;
+    const {newState}=await import('./src/storage.js');const s=newState('2026-09-06');s.notifications.enabled=true;s.settings.onboarded=true;
     s.tasks=[{id:'notification-test',title:'Notification verification',estimatedMinutes:30,remainingMinutes:30,splittable:true,status:'todo',priority:3}];
     s.sessions=[{id:'test-session',taskId:'notification-test',date:'2026-09-06',start:670,end:700,status:'planned'}];
     await navigator.serviceWorker.ready;return s;

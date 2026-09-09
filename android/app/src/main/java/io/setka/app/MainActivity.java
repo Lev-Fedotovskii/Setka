@@ -5,6 +5,8 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
   @Override public void onCreate(android.os.Bundle savedInstanceState){
     registerPlugin(SetkaExportPlugin.class);
+    registerPlugin(SetkaStatusPlugin.class);
+    registerPlugin(SetkaTimePlugin.class);
     super.onCreate(savedInstanceState);
     androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(),false);
     getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);

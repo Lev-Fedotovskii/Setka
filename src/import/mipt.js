@@ -160,13 +160,15 @@ export function importDiff(before,after) {
 export function applyOverrides(schedule,overrides={}) {
   for(const u of schedule.importMeta?.unresolved||[]){const key=`unresolved:${u.sheet}:${u.range}`,o=overrides[key];if(o?.rawText===u.rawText&&(!o.workbook||o.workbook===schedule.importMeta.workbook)&&o.replacements?.length&&!schedule.series.some(s=>s.source.fingerprint===key))schedule.series.push({source:{fingerprint:key,rawText:u.rawText,workbook:schedule.importMeta.workbook,sheet:u.sheet,ranges:[u.range]},id:key});}
   const replaced=new Set();
+  const baselines=new Map();
+  for(const s of schedule.series)if(!baselines.has(s.source.fingerprint))baselines.set(s.source.fingerprint,s.sourceBaseline||schedule.series.filter(x=>x.source.fingerprint===s.source.fingerprint&&x.time).map(x=>structuredClone(x)));
   schedule.series=schedule.series.flatMap(s=>{
     const o=overrides[s.source.fingerprint];
     if(o?.workbook&&o.workbook!==s.source.workbook)return [s];
     if(o?.rawText!==s.source.rawText){if(o)s.confidence?.warnings.push('Источник изменился: прежнее личное уточнение требует повторной проверки.');return [s];}
     if(o.replacements&&replaced.has(s.source.fingerprint))return [];
     if(o.replacements)replaced.add(s.source.fingerprint);
-    if(o.replacements)return o.replacements.map((p,i)=>({...structuredClone(s),...structuredClone(p),id:i?`${s.id}:variant-${i}`:s.id,source:s.source,blocked:false,needsChoice:false,confidence:{warnings:['Личное уточнение по исходной записи.']}}));
+    if(o.replacements)return o.replacements.map((p,i)=>({...structuredClone(s),...structuredClone(p),id:i?`${s.id}:variant-${i}`:s.id,source:s.source,sourceBaseline:structuredClone(baselines.get(s.source.fingerprint)),blocked:false,needsChoice:false,confidence:{warnings:['Личное уточнение по исходной записи.']}}));
     if(o.kind)s.kind=o.kind;return [s];
   });
   return schedule;

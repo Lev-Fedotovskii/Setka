@@ -102,6 +102,14 @@ jobs:
             grep -F 'OK (1 test)' /tmp/setka-reinstall.txt
             adb shell am instrument -w -e class 'io.setka.app.SetkaInstrumentedTest#previousStableDataSurvives' io.setka.app.release.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/setka-upgrade.txt
             grep -F 'OK (1 test)' /tmp/setka-upgrade.txt
+            adb shell am instrument -w -e class 'io.setka.app.SetkaInstrumentedTest#studyRecoveryAndStatusLifecycle' io.setka.app.unstable.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/setka-study-status.txt
+            grep -F 'OK (1 test)' /tmp/setka-study-status.txt
+            adb reboot
+            adb wait-for-device
+            adb shell 'while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 1; done'
+            adb shell input keyevent 82
+            adb shell am instrument -w -e class 'io.setka.app.SetkaInstrumentedTest#statusSurvivesReboot' io.setka.app.unstable.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/setka-status-reboot.txt
+            grep -F 'OK (1 test)' /tmp/setka-status-reboot.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -112,6 +120,9 @@ jobs:
             /tmp/setka-reinstall.txt
             /tmp/setka-layout.txt
             /tmp/setka-upgrade.txt
+            /tmp/setka-isolation.txt
+            /tmp/setka-study-status.txt
+            /tmp/setka-status-reboot.txt
             /tmp/setka-screens/
       - uses: actions/upload-artifact@v4
         with:

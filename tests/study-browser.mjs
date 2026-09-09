@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||'msedge'});
+const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+const page=await context.newPage(),base=process.env.TEST_URL||'http://localhost:4184/Setka/';
+try{
+  await page.clock.install({time:new Date('2026-09-08T07:00:00Z')});
+  await page.goto(base);await page.locator('#dialog.onboarding-flow[open]').waitFor();
+  const size=await page.locator('#dialog').boundingBox();assert.equal(Math.round(size.width),390);assert.equal(Math.round(size.height),844);assert.equal(size.x,0);assert.equal(size.y,0);
+  assert.equal(await page.locator('#app').isVisible(),false);
+  await page.locator('[data-action=setup-preferences]').click();await page.locator('#setup-form .primary').click();await page.locator('.now-panel').waitFor();
+  await page.locator('[data-study=start]').click();await page.locator('#study-start [name=subject]').fill('Физика');await page.locator('#study-start .primary').click();
+  await page.clock.fastForward(90000);await page.reload();await page.locator('[data-study-clock]').waitFor();
+  assert.match(await page.locator('[data-study-clock]').textContent(),/00:01:3/);
+  await page.locator('[data-study=pause]').click();const paused=await page.locator('[data-study-clock]').textContent();await page.clock.fastForward(60000);assert.equal(await page.locator('[data-study-clock]').textContent(),paused);
+  await page.locator('[data-study=resume]').click();await page.clock.fastForward(30000);await page.locator('[data-study=finish]').click();
+  await page.locator('#study-finish details summary').click();await page.locator('[name=progress]').fill('0.25');await page.locator('[name=unit]').fill('темы');await page.locator('#study-finish [name=minutes]').fill('2');await page.locator('#study-finish .primary').click();
+  const state=await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')));assert.equal(state.measurements.length,1);assert.equal(state.measurements[0].measuredMs,120000);assert.equal(state.measurements[0].progress,0.25);assert.equal(state.activeStudy,null);
+  await page.locator('[data-study=stats]').click();await page.locator('[data-study=edit]').click();await page.locator('#study-finish [name=minutes]').fill('1');await page.locator('#study-finish .primary').click();
+  await page.locator('[data-study=stats]').click();assert.match(await page.locator('#dialog').textContent(),/1 мин учёбы/);await page.keyboard.press('Escape');
+  await page.locator('[data-action=exclude-window]').first().click();await page.locator('#recommendation-exclusion [name=start]').fill('12:00');await page.locator('#recommendation-exclusion [name=end]').fill('13:00');await page.locator('[name=weekly]').check();await page.locator('#recommendation-exclusion .primary').click();
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('setka.unstable.v1')).events.length),0);
+  await page.evaluate(()=>window.scrollTo(0,400));const before=await page.evaluate(()=>scrollY);await page.locator('[data-action=add-task]').click();
+  assert.equal(await page.evaluate(()=>document.body.style.position),'fixed');
+  const top=await page.evaluate(()=>document.body.style.top);await page.mouse.move(5,5);await page.mouse.wheel(0,500);assert.equal(await page.evaluate(()=>document.body.style.top),top);
+  await page.keyboard.press('Escape');assert.equal(await page.evaluate(()=>document.body.style.position),'');
+  assert.ok(Math.abs(await page.evaluate(()=>scrollY)-before)<2);
+  await page.screenshot({path:'artifacts/study-mobile.png',fullPage:true});
+  console.log('Full-screen onboarding, timer start/pause/restart/correction/fractional progress, recommendation exclusion, modal scroll lock passed.');
+}finally{await context.close();await browser.close();}
