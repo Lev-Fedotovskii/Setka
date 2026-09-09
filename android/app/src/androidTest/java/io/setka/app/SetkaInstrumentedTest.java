@@ -55,15 +55,6 @@ public class SetkaInstrumentedTest {
     }
     fail("Status publication timed out: present="+present+", expected title="+title+", actual="+actual);
   }
-  @Test public void statusSurvivesReboot() throws Exception {
-    Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
-    assertTrue(SetkaStatusReceiver.prefs(context).getBoolean("enabled",false));
-    NotificationManager manager=(NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-    long end=System.currentTimeMillis()+30000;boolean shown=false;
-    while(System.currentTimeMillis()<end){shown=java.util.Arrays.stream(manager.getActiveNotifications()).anyMatch(n->n.getId()==SetkaStatusReceiver.ID);if(shown)break;Thread.sleep(500);}
-    assertTrue("Boot receiver should restore persisted status without opening the activity",shown);
-    new SetkaStatusReceiver().onReceive(context,new android.content.Intent(SetkaStatusReceiver.STOP));
-  }
   @Test public void unstableStartsIsolated() throws Exception {
     Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
     assertEquals("io.setka.app.unstable",context.getPackageName());

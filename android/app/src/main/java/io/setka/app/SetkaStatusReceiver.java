@@ -27,7 +27,7 @@ public class SetkaStatusReceiver extends BroadcastReceiver {
       JSONArray entries=new JSONArray(p.getString("entries","[]"));JSONObject current=null;long next=expires;
       for(int i=0;i<entries.length();i++){JSONObject entry=entries.getJSONObject(i);long at=entry.getLong("at");if(at<=now)current=entry;else {next=Math.min(next,at);break;}}
       if(current!=null&&current.optBoolean("show")&&NotificationManagerCompat.from(context).areNotificationsEnabled()){
-        NotificationChannel channel=new NotificationChannel(CHANNEL,"Сейчас и дальше",NotificationManager.IMPORTANCE_LOW);channel.setSound(null,null);channel.enableVibration(false);notifications.createNotificationChannel(channel);
+        if(Build.VERSION.SDK_INT>=26){NotificationChannel channel=new NotificationChannel(CHANNEL,"Сейчас и дальше",NotificationManager.IMPORTANCE_LOW);channel.setSound(null,null);channel.enableVibration(false);notifications.createNotificationChannel(channel);}
         PendingIntent stop=PendingIntent.getBroadcast(context,ID,new Intent(context,SetkaStatusReceiver.class).setAction(STOP),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
         Intent launch=context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
         PendingIntent open=PendingIntent.getActivity(context,ID,launch,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
