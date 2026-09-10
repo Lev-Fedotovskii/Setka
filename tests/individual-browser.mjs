@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||'msedge'}),context=await browser.newContext({viewport:{width:1200,height:1000}}),page=await context.newPage();
 try{
+ await page.clock.setFixedTime(new Date('2026-09-01T00:00:00Z'));
  const base=process.env.TEST_URL||'http://localhost:4184/Setka/';await page.goto(base);await page.locator('#dialog[open]').waitFor();await page.locator('#dialog [data-action=close]').click();await page.locator('[data-nav=more]').first().click();
  await page.locator('[data-individual=search]').click();await page.locator('#individual-search').waitFor({timeout:90000});await page.locator('#individual-search [name=query]').fill('анализ');await page.locator('#individual-search [name=kind]').selectOption('lecture');await page.locator('#individual-search .primary').click();
  await page.locator('[data-result]:not([disabled])').first().click();await page.locator('#individual-choice .primary').click();
