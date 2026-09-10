@@ -46,6 +46,12 @@ Exact alarms require platform permission; without it transitions may be delayed.
 
 ## Verification and remaining device work
 
+### September 10 feedback
+
+Today hides a free-window card when its recommendation-eligible portions contain no interval at least as long as the configured minimum. The same rule covers 10-, 20-, 30-minute and other gaps, including dated/weekly exclusions. The underlying free time and totals remain unchanged; existing personal events and planned work are still shown. Lowering the minimum or restoring an exclusion makes eligible cards appear again.
+
+The owner relayed student confirmation that Thursday programming for Б06-603 begins at 16:15. `src/import/clarifications.js` records this narrow human evidence for the autumn 2026 first-year БВО workbook, Лист1, CK55:CK57, exact original text and 15:30–18:30 grid interval. It is not a general half-row timing rule. Fresh imports use 16:15 and retain the source end 18:30, recurrence, raw text and identity. Existing imports can review/apply the clarification even when the workbook hash is unchanged, or use the prefilled personal correction and undo it. Personal overrides remain authoritative. Changed source evidence or another term does not receive this clarification automatically.
+
 Domain tests cover migration, recurrence/month ends, timer pause/restart/backward clocks/deduplication, fractional progress and estimate separation, recommendation exclusions, personal exceptions, cross-source changes/missing records, conflict attendance, and notification/status policy. Browser suites exercise the real workbooks, updates, mobile setup/scroll lock, timer correction, task recurrence/moving, personal exceptions, cross-source selection and undo, Week zoom and one-page printing. Release CI adds native timer suspension/reload, status stop/transition checks and actual emulator reboot restoration on APIs 35/36. Check the linked release's CI outcome before treating those new device gates as passed.
 
 Owner confirmed Unstable.1 channel coexistence on Samsung S23; OS version was not supplied. That is not a test of Unstable.4 features. Required physical follow-up: timer background/restart, status transitions while locked, stop/reopen, reboot, permission revocation and battery-policy restrictions; old 0.2 recovery remains unverified on the tester's Xiaomi. Do not close #2/#4 on emulator evidence alone. No additional physical testing is claimed.

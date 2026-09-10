@@ -57,6 +57,7 @@ jobs:
           node tests/zoom-browser.mjs
           node tests/study-browser.mjs
           node tests/mobile-today-browser.mjs
+          node tests/feedback-browser.mjs
           node tests/planning-04-browser.mjs
           node tests/individual-browser.mjs
       - name: Assemble and verify channel isolation in one browser profile

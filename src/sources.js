@@ -1,5 +1,6 @@
 import {readWorkbook} from './import/workbook.js';
 import {inferMipt,applyOverrides,importDiff} from './import/mipt.js';
+import {pendingTimingClarification} from './import/clarifications.js';
 export const PUBLIC_URL='https://lev-fedotovskii.github.io/Setka/';
 export function sortSources(sources){
   const course=s=>Number.isFinite(Number(s.course))&&Number(s.course)>0?Number(s.course):Infinity;
@@ -8,7 +9,7 @@ export function sortSources(sources){
 }
 export function sourceState(schedule,source){
   if(!source)return 'missing';if(source.status!=='ok')return 'error';
-  return schedule?.importMeta.hash===source.sha256?'current':'update';
+  return schedule?.importMeta.hash===source.sha256&&!pendingTimingClarification(schedule)?'current':'update';
 }
 export async function loadCatalog(base){
   const r=await fetch(new URL('data/catalog.json',base),{cache:'no-store'});if(!r.ok)throw Error('Каталог пока недоступен');

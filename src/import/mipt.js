@@ -2,6 +2,7 @@ import { BELLS, DEFAULT_TERM } from '../domain/schedule.js';
 import { minute,addDays,monday,weekday,validDate } from '../domain/dates.js';
 import { address } from './xlsx.js';
 import {classifyKind,recognizePalette} from './kinds.js';
+import {timingClarification} from './clarifications.js';
 const DAYS=['понедельник','вторник','среда','четверг','пятница','суббота','воскресенье'];
 const groupPattern=/^[ББBСCМM]\d{2}-\d{3}[а-яa-z]*$/iu;
 const lower=s=>s.toLocaleLowerCase('ru').replaceAll('ё','е');
@@ -89,8 +90,13 @@ export function inferMipt(ir,term=DEFAULT_TERM) {
   if(!groups.size || !series.length)return inferDatedMipt(ir,term);
   const primary=[...bellTemplates].sort((a,b)=>b[1]-a[1]||b[0].length-a[0].length)[0];
   const bellSchedule=primary?{id:'mipt-source-bells',validFrom:term.startsOn,slots:JSON.parse(primary[0]).map((t,i)=>({number:i+1,...t}))}:structuredClone(BELLS);
-  for(const s of series)s.time.slotNumbers=bellSchedule.slots.filter(b=>minute(b.startsAt)<minute(s.time.endsAt)&&minute(b.endsAt)>minute(s.time.startsAt)).map(b=>b.number);
-  return {schemaVersion:'0.1',institution:{id:'mipt',name:'МФТИ',timezone:'Europe/Moscow'},term:structuredClone(term),bellSchedule,groups:[...groups.values()],series,importMeta:{workbook:ir.name,hash:ir.hash,blocks,unresolved}};
+  const clarificationsApplied=[];
+  for(const s of series){
+    const clarification=timingClarification(s,term);
+    if(clarification){s.time.startsAt=clarification.startsAt;s.source.timingClarification=clarification;clarificationsApplied.push(clarification.id);s.confidence.warnings=s.confidence.warnings.filter(w=>w!=='Занятие начинается внутри строки пары: время требует проверки.');s.confidence.warnings.push(clarification.evidence);}
+    s.time.slotNumbers=bellSchedule.slots.filter(b=>minute(b.startsAt)<minute(s.time.endsAt)&&minute(b.endsAt)>minute(s.time.startsAt)).map(b=>b.number);
+  }
+  return {schemaVersion:'0.1',institution:{id:'mipt',name:'МФТИ',timezone:'Europe/Moscow'},term:structuredClone(term),bellSchedule,groups:[...groups.values()],series,importMeta:{workbook:ir.name,hash:ir.hash,blocks,unresolved,clarificationsApplied}};
 }
 
 // ФБВТ publishes concrete dates in week columns, with subject colors, not lesson-kind colors.

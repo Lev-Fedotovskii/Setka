@@ -7,6 +7,8 @@
 - Full-screen onboarding and document scroll/gesture locking behind dialogs.
 - On phones, the study action sits beside Today; active timing uses a compact row and now/next is shorter, keeping the timetable visible on the first screen.
 - Minimum recommendation windows and reversible dated/weekly exclusions, independently of occupied time and reminders.
+- Free-window cards disappear when no part meets the recommendation minimum or the window is excluded. This applies to any configured duration; existing plans remain visible.
+- Confirmed Б06-603 Thursday programming start: 16:15. The exact source entry retains its raw text, end time and recurrence; older saved imports receive a reviewable correction with undo, and personal edits take precedence.
 - Subject/deadline/reminder/repeating task controls; moving planned work; personal-event series/occurrence editing and undo.
 - Cross-source lesson selection with personal day/date ranges and own-class hiding, reviewable updates and attendance decisions for overlaps.
 - Correction history and preserved source baselines; ambiguous recurrence requires explicit input.
