@@ -18,6 +18,7 @@ test('confirmed B06-603 programming start uses 16:15, retains source end, identi
 test('no generalized half-row arithmetic or stale clarification applies to changed evidence',()=>{
   assert.equal(inferMipt(book(raw.replace('Гавва','Другой'))).series[0].time.startsAt,'15:30');
   const original=inferMipt(book()).series[0];original.time.startsAt='15:30';
+  const moved=structuredClone(original);moved.source.ranges=['CK56:CK58'];assert.equal(timingClarification(moved,{id:'mipt-2026-autumn'}).startsAt,'16:15','Same entry verified after the official workbook inserted a row');
   for(const change of [s=>s.cohorts[0].groupId='Б06-602',s=>s.recurrence.weekdays=[3],s=>s.source.ranges=['CK54:CK57'],s=>s.source.workbook='Другая книга.xlsx',s=>s.time.endsAt='16:55']){const x=structuredClone(original);change(x);assert.equal(timingClarification(x,{id:'mipt-2026-autumn'}),null);}
   assert.equal(timingClarification(original,{id:'mipt-2027-autumn'}),null);
 });

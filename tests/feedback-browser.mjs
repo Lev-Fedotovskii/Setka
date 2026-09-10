@@ -12,10 +12,10 @@ try{
   const empty=await read();
   await page.getByRole('button',{name:'Выбрать расписание МФТИ'}).click();await page.locator('[data-source]').filter({hasText:'1 курс БВО'}).click();
   await page.locator('#import-group').selectOption('Б06-603');
-  assert.match(await page.locator('.import-record').filter({hasText:'CK55:CK57'}).innerText(),/16:15–18:30/);
+  assert.match(await page.locator('.import-record').filter({hasText:'Гавва А.С.-706 КПМ'}).innerText(),/16:15–18:30/);
   await page.locator('#import-form .sticky-button').click();await page.locator('#apply-import').click();await page.locator('#setup-form .primary').click();
   await page.locator('[data-action=add-task]').click();await page.locator('#task-form [name=title]').fill('Сохранить личную задачу');await page.locator('#task-form .sticky-button').click();
-  const current=await read(),lesson=current.schedule.series.find(s=>s.id==='lesson-c48fa7a8');
+  const current=await read(),lesson=current.schedule.series.find(s=>s.source.rawText==='Введение в программирование, уч.асс. Гавва А.С.-706 КПМ'&&s.cohorts.some(c=>c.groupId==='Б06-603')&&s.recurrence.weekdays.includes(4));
   assert.equal(lesson.time.startsAt,'16:15');assert.equal(lesson.time.endsAt,'18:30');assert.ok(lesson.source.timingClarification);
   // Restore an explicit old-version backup in this disposable browser profile.
   const legacy=structuredClone(current),old=legacy.schedule.series.find(s=>s.id===lesson.id);old.time.startsAt='15:30';delete old.source.timingClarification;delete legacy.schedule.importMeta.clarificationsApplied;
